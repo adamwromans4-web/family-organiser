@@ -149,7 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .notes-area{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:12px}
 .notes-area textarea{width:100%;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none;resize:vertical;min-height:120px;font-family:inherit;line-height:1.6}
 .notes-area-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
-.notes-save-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}
+.notes-save-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}.notes-mic-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text);margin-left:6px;vertical-align:middle;flex-shrink:0}.notes-mic-btn.recording{background:#FEE2E2;border-color:#EF4444;color:#EF4444}
 /* doc checklist */
 .doc-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text)}
 .doc-item:last-child{border-bottom:none}
@@ -314,35 +314,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
     <div class="notes-area">
       <div class="notes-area-title">
         <span>Adam's notes</span>
-        <button class="notes-save-btn" onclick="saveNote('adam')">Save</button>
+        <button class="notes-save-btn" onclick="saveNote('adam')">Save</button><button class="notes-mic-btn" onclick="micNote('adam')" id="nmic-adam" title="Voice note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
       </div>
       <textarea id="note-adam" placeholder="Jot anything down here..."></textarea>
     </div>
     <div class="notes-area">
       <div class="notes-area-title">
         <span>Laura's notes</span>
-        <button class="notes-save-btn" onclick="saveNote('laura')">Save</button>
+        <button class="notes-save-btn" onclick="saveNote('laura')">Save</button><button class="notes-mic-btn" onclick="micNote('laura')" id="nmic-laura" title="Voice note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
       </div>
       <textarea id="note-laura" placeholder="Jot anything down here..."></textarea>
     </div>
     <div class="notes-area">
       <div class="notes-area-title">
         <span>Emma's notes</span>
-        <button class="notes-save-btn" onclick="saveNote('emma')">Save</button>
+        <button class="notes-save-btn" onclick="saveNote('emma')">Save</button><button class="notes-mic-btn" onclick="micNote('emma')" id="nmic-emma" title="Voice note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
       </div>
       <textarea id="note-emma" placeholder="Jot anything down here..."></textarea>
     </div>
     <div class="notes-area">
       <div class="notes-area-title">
         <span>Daniel's notes</span>
-        <button class="notes-save-btn" onclick="saveNote('daniel')">Save</button>
+        <button class="notes-save-btn" onclick="saveNote('daniel')">Save</button><button class="notes-mic-btn" onclick="micNote('daniel')" id="nmic-daniel" title="Voice note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
       </div>
       <textarea id="note-daniel" placeholder="Jot anything down here..."></textarea>
     </div>
     <div class="notes-area">
       <div class="notes-area-title">
         <span>Andrew's notes</span>
-        <button class="notes-save-btn" onclick="saveNote('andrew')">Save</button>
+        <button class="notes-save-btn" onclick="saveNote('andrew')">Save</button><button class="notes-mic-btn" onclick="micNote('andrew')" id="nmic-andrew" title="Voice note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
       </div>
       <textarea id="note-andrew" placeholder="Jot anything down here..."></textarea>
     </div>
@@ -769,6 +769,24 @@ window.saveNote = async person=>{
   const text=document.getElementById('note-'+person).value;
   freeNotes[person]=text;
   await setDoc(doc(db,'freeNotes','all'),{[person]:text},{merge:true});
+};
+
+window.micNote = person=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert("Voice notes work in Chrome — try typing instead!");return;}
+  const btn=document.getElementById("nmic-"+person);
+  btn.classList.add("recording");
+  const r=new SR();
+  r.continuous=false;
+  r.onresult=e=>{
+    const ta=document.getElementById("note-"+person);
+    const transcript=e.results[0][0].transcript;
+    ta.value=ta.value?(ta.value+"\n"+transcript):transcript;
+    btn.classList.remove("recording");
+    window.saveNote(person);
+  };
+  r.onerror=()=>btn.classList.remove("recording");
+  r.start();
 };
 
 renderCalendar();
