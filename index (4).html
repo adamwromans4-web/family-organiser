@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="Family"/>
+<title>Family Organiser</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh}
+.app{max-width:820px;margin:0 auto;background:#fff;min-height:100vh;border-left:1px solid #e8e8e4;border-right:1px solid #e8e8e4}
+.topbar{background:#fff;border-bottom:1px solid #e8e8e4;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.app-icon{width:32px;height:32px;border-radius:8px;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center}
+.topbar-title{font-size:16px;font-weight:600}
+.avatars{display:flex;gap:4px}
+.av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;border:2px solid #fff}
+.nav{display:flex;background:#fff;border-bottom:1px solid #e8e8e4;position:sticky;top:60px;z-index:9}
+.nav-btn{flex:1;padding:12px 4px;font-size:13px;font-weight:500;color:#888;background:none;border:none;cursor:pointer;border-bottom:2px solid transparent}
+.nav-btn:hover{color:#1a1a1a}
+.nav-btn.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.tab{display:none;padding:20px}
+.tab.active{display:block}
+.section-label{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+/* calendar */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-title{font-size:17px;font-weight:600}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{background:none;border:1px solid #e8e8e4;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;color:#1a1a1a}
+.cal-nav button:hover{background:#f5f5f0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.cal-day-label{text-align:center;font-size:11px;color:#888;padding:4px 0;font-weight:600}
+.cal-day{min-height:44px;background:#fff;border-radius:8px;border:1px solid #e8e8e4;padding:5px;cursor:pointer}
+.cal-day:hover{background:#f5f5f0}
+.cal-day.today{border:2px solid #1a1a1a}
+.cal-day.has-note{background:#EBF4FF}
+.cal-day.other-month{opacity:.3;pointer-events:none}
+.cal-day.selected{border:2px solid #1D9E75;background:#E1F5EE}
+.day-num{font-size:12px;font-weight:600}
+.day-dot{width:5px;height:5px;border-radius:50%;background:#378ADD;margin-top:3px}
+.note-panel{background:#fff;border-radius:12px;border:1px solid #e8e8e4;padding:16px}
+.note-panel-title{font-size:14px;font-weight:600;margin-bottom:12px}
+.note-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0ec;font-size:14px}
+.note-item:last-of-type{border-bottom:none}
+.note-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.note-text{flex:1;line-height:1.4}
+.add-note-row{display:flex;gap:8px;margin-top:12px;align-items:center}
+.add-note-row select,.add-note-row input{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid #e8e8e4;background:#f9f9f7;color:#1a1a1a;outline:none}
+.add-note-row input{flex:1}
+.mic-btn{width:36px;height:36px;border-radius:50%;border:1px solid #e8e8e4;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#1a1a1a}
+.mic-btn:hover{background:#f5f5f0}
+.mic-btn.recording{background:#FEE2E2;border-color:#EF4444;color:#EF4444}
+.btn-primary{padding:8px 14px;border-radius:8px;border:none;background:#1a1a1a;color:#fff;font-size:13px;cursor:pointer}
+.btn-primary:hover{background:#333}
+/* checklist */
+.section-card{background:#fff;border-radius:12px;border:1px solid #e8e8e4;padding:16px;margin-bottom:12px}
+.section-card-title{font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.prog-label{font-size:12px;color:#888;font-weight:400}
+.prog-done{color:#1D9E75!important}
+.progress-bar{height:4px;background:#f0f0ec;border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:#1D9E75;border-radius:2px;transition:width .3s}
+.items-list{margin-top:10px}
+.check-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0ec;font-size:14px}
+.check-item:last-child{border-bottom:none}
+.chk{width:18px;height:18px;border-radius:5px;border:1.5px solid #d0d0cc;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#fff;transition:all .15s}
+.chk:hover{border-color:#1D9E75}
+.chk.done{background:#1D9E75;border-color:#1D9E75}
+.chk.done::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.done-text{text-decoration:line-through;color:#aaa}
+.badge-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;margin-left:auto;flex-shrink:0}
+.del-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:16px;line-height:1;padding:0 2px;flex-shrink:0;margin-left:auto}
+.del-btn:hover{color:#EF4444}
+.empty-msg{font-size:13px;color:#aaa;padding:8px 0}
+.info-box{background:#EBF4FF;border-radius:10px;padding:12px 14px;font-size:13px;color:#0C447C;line-height:1.6;margin-top:4px}
+.info-box a{color:#185FA5}
+/* personal lists */
+.person-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.person-card{background:#fff;border-radius:12px;border:1px solid #e8e8e4;overflow:hidden}
+.person-card-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f0ec}
+.person-header-left{display:flex;align-items:center;gap:10px}
+.person-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.person-name{font-size:14px;font-weight:600}
+.person-count{font-size:11px;color:#888;margin-top:1px}
+.quick-add-btn{padding:5px 12px;border-radius:20px;border:1.5px solid;font-size:12px;font-weight:600;cursor:pointer;background:transparent}
+.quick-add-btn:hover{opacity:.7}
+.quick-add-panel{display:none;gap:6px;align-items:center;padding:10px 14px;border-bottom:1px solid #f0f0ec}
+.quick-add-panel.open{display:flex}
+.quick-add-panel select,.quick-add-panel input{font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid #e8e8e4;background:#fff;color:#1a1a1a;outline:none}
+.quick-add-panel input{flex:1}
+.quick-add-panel .btn-save{padding:6px 10px;border-radius:8px;border:none;font-size:12px;cursor:pointer;background:#1a1a1a;color:#fff}
+.quick-add-panel .btn-cancel{padding:6px 8px;border-radius:8px;border:1px solid #e8e8e4;font-size:12px;cursor:pointer;background:#fff;color:#888}
+.person-card-body{padding:4px 14px}
+.person-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0ec;font-size:14px}
+.person-item:last-child{border-bottom:none}
+.from-badge{display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;margin-left:6px}
+.person-add-row{display:flex;gap:6px;padding:10px 14px;border-top:1px solid #f0f0ec}
+.person-add-row input{flex:1;font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid #e8e8e4;background:#f9f9f7;color:#1a1a1a;outline:none}
+.person-add-row input:focus{border-color:#1a1a1a}
+.person-add-row button{padding:7px 12px;border-radius:8px;border:1px solid #e8e8e4;font-size:12px;cursor:pointer;background:#fff;color:#1a1a1a}
+.person-add-row button:hover{background:#f5f5f0}
+/* shared lists */
+.new-list-row{display:flex;gap:8px;margin-bottom:12px}
+.new-list-row input{flex:1;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid #e8e8e4;background:#f9f9f7;color:#1a1a1a;outline:none}
+.new-list-row input:focus{border-color:#1a1a1a}
+.new-list-row button{padding:10px 16px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:#1a1a1a;color:#fff}
+.new-list-row button:hover{background:#333}
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-row input{flex:1;font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid #e8e8e4;background:#f9f9f7;color:#1a1a1a;outline:none}
+.add-row button{padding:7px 12px;border-radius:8px;border:1px solid #e8e8e4;font-size:12px;cursor:pointer;background:#fff;color:#1a1a1a}
+.add-row button:hover{background:#f5f5f0}
+.setup-banner{background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;padding:14px 16px;margin:20px;font-size:13px;color:#92400E;line-height:1.7}
+.setup-banner strong{font-weight:600}
+.setup-banner code{background:#FEF3C7;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px}
+@media(max-width:600px){.tab{padding:14px}.person-lists{grid-template-columns:1fr}.cal-day{min-height:36px}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="app-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9,22 9,12 15,12 15,22"/>
+        </svg>
+      </div>
+      <span class="topbar-title">Family organiser</span>
+    </div>
+    <div class="avatars">
+      <div class="av" style="background:#E6F1FB;color:#0C447C" title="Adam">A</div>
+      <div class="av" style="background:#E1F5EE;color:#085041" title="Laura">L</div>
+      <div class="av" style="background:#FBEAF0;color:#72243E" title="Emma">E</div>
+      <div class="av" style="background:#FAEEDA;color:#633806" title="Daniel">D</div>
+    </div>
+  </header>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('calendar',this)">Calendar</button>
+    <button class="nav-btn" onclick="showTab('probate',this)">Probate</button>
+    <button class="nav-btn" onclick="showTab('lists',this)">Lists</button>
+  </nav>
+
+  <div id="setup-banner" class="setup-banner" style="display:none">
+    <strong>One-time setup needed:</strong> Replace the Firebase config in this file to enable real-time sync.<br>
+    1. Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → create project → enable Firestore (test mode)<br>
+    2. Register a web app → copy config → find <code>REPLACE_WITH_YOUR_FIREBASE_CONFIG</code> in this file and paste it in.<br>
+    Until then, the app works locally but won't sync between devices.
+  </div>
+
+  <!-- CALENDAR TAB -->
+  <div id="tab-calendar" class="tab active">
+    <div class="cal-header">
+      <h2 class="cal-title" id="cal-title"></h2>
+      <div class="cal-nav">
+        <button onclick="changeMonth(-1)">&#8249;</button>
+        <button onclick="changeMonth(1)">&#8250;</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div id="note-panel" class="note-panel" style="display:none">
+      <div class="note-panel-title" id="note-panel-title"></div>
+      <div id="notes-list"></div>
+      <div class="add-note-row">
+        <select id="note-who">
+          <option value="adam">Adam</option>
+          <option value="laura">Laura</option>
+          <option value="emma">Emma</option>
+          <option value="daniel">Daniel</option>
+        </select>
+        <input type="text" id="note-input" placeholder="Add a note..." onkeydown="if(event.key==='Enter')addCalNote()"/>
+        <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Voice note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <button class="btn-primary" onclick="addCalNote()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBATE TAB -->
+  <div id="tab-probate" class="tab">
+    <div class="section-card">
+      <div class="section-card-title"><span>Already sorted</span><span class="prog-label prog-done">3 of 3</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      <div class="items-list">
+        <div class="check-item"><div class="chk done"></div><span class="done-text">House valued</span></div>
+        <div class="check-item"><div class="chk done"></div><span class="done-text">Estate confirmed under £325k — no inheritance tax</span></div>
+        <div class="check-item"><div class="chk done"></div><span class="done-text">Misc items under £500 — self-estimated</span></div>
+      </div>
+    </div>
+    <div class="section-card" id="probate-val-card"></div>
+    <div class="section-card" id="probate-form-card"></div>
+    <div class="info-box">
+      <strong>Tip:</strong> Apply online at gov.uk — digital applications process in 2–5 weeks vs 13 weeks by post.
+      Get forms checked free at <a href="https://withfarra.co.uk" target="_blank">withfarra.co.uk</a> or Citizens Advice before submitting.
+    </div>
+  </div>
+
+  <!-- LISTS TAB -->
+  <div id="tab-lists" class="tab">
+    <div class="section-label">Personal lists</div>
+    <div class="person-lists" id="person-lists"></div>
+    <div class="section-label">Shared lists</div>
+    <div class="new-list-row">
+      <input type="text" id="new-list-input" placeholder="New shared list name..." onkeydown="if(event.key==='Enter')createSharedList()"/>
+      <button onclick="createSharedList()">+ Create</button>
+    </div>
+    <div id="shared-lists"></div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+// ============================================================
+//  REPLACE THIS BLOCK WITH YOUR FIREBASE CONFIG
+//  Get it from: console.firebase.google.com
+//  → Your project → Project settings → Your apps → Web app
+// ============================================================
+const firebaseConfig = {
+  apiKey: "REPLACE_WITH_YOUR_FIREBASE_CONFIG",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+// ============================================================
+
+const configured = firebaseConfig.apiKey !== "REPLACE_WITH_YOUR_FIREBASE_CONFIG";
+if (!configured) document.getElementById('setup-banner').style.display = 'block';
+
+let db;
+if (configured) {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+}
+
+// ── People ──────────────────────────────────────────────────
+const PEOPLE = [
+  { key:'adam',   name:'Adam',   init:'A', bg:'#E6F1FB', col:'#0C447C', accent:'#378ADD' },
+  { key:'laura',  name:'Laura',  init:'L', bg:'#E1F5EE', col:'#085041', accent:'#1D9E75' },
+  { key:'emma',   name:'Emma',   init:'E', bg:'#FBEAF0', col:'#72243E', accent:'#D4537E' },
+  { key:'daniel', name:'Daniel', init:'D', bg:'#FAEEDA', col:'#633806', accent:'#BA7517' },
+];
+const getPerson = k => PEOPLE.find(p => p.key === k) || PEOPLE[0];
+
+// ── State ────────────────────────────────────────────────────
+let calNotes = {};
+let probateChecks = {};
+let personalLists = { adam:[], laura:[], emma:[], daniel:[] };
+let sharedLists = [];
+let selectedDate = null;
+let currentDate = new Date();
+let recording = false;
+
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+// ── Firebase listeners ───────────────────────────────────────
+if (db) {
+  const q = query(collection(db, 'calendarNotes'), orderBy('createdAt','asc'));
+  onSnapshot(q, snap => {
+    calNotes = {};
+    snap.forEach(d => {
+      const n = d.data();
+      if (!calNotes[n.date]) calNotes[n.date] = [];
+      calNotes[n.date].push({ id: d.id, ...n });
+    });
+    renderCalendar();
+    if (selectedDate) renderNotes(selectedDate);
+  });
+
+  onSnapshot(doc(db, 'probate','checklist'), snap => {
+    probateChecks = snap.exists() ? snap.data() : {};
+    renderProbateSection('val', 'Valuations', PROBATE_VAL, 'probate-val-card');
+    renderProbateSection('form', 'Forms & submission', PROBATE_FORM, 'probate-form-card');
+  });
+
+  onSnapshot(doc(db, 'personalLists','all'), snap => {
+    personalLists = snap.exists() ? snap.data() : { adam:[], laura:[], emma:[], daniel:[] };
+    PEOPLE.forEach(p => { if (!personalLists[p.key]) personalLists[p.key] = []; });
+    renderPersonLists();
+  });
+
+  const sq = query(collection(db, 'sharedLists'), orderBy('createdAt','asc'));
+  onSnapshot(sq, snap => {
+    sharedLists = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderSharedLists();
+  });
+}
+
+// ── Calendar ─────────────────────────────────────────────────
+window.changeMonth = dir => {
+  currentDate.setMonth(currentDate.getMonth() + dir);
+  selectedDate = null;
+  document.getElementById('note-panel').style.display = 'none';
+  renderCalendar();
+};
+
+function renderCalendar() {
+  const y = currentDate.getFullYear(), m = currentDate.getMonth();
+  document.getElementById('cal-title').textContent = `${MONTHS[m]} ${y}`;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  DAYS.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-label';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+  const firstDow = (new Date(y,m,1).getDay()+6)%7;
+  const dim = new Date(y,m+1,0).getDate();
+  const dip = new Date(y,m,0).getDate();
+  const today = new Date();
+  for (let i = 0; i < 42; i++) {
+    let day, isThis = true;
+    if (i < firstDow) { day = dip - firstDow + i + 1; isThis = false; }
+    else if (i >= firstDow + dim) { day = i - firstDow - dim + 1; isThis = false; }
+    else day = i - firstDow + 1;
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = isThis && today.getFullYear()===y && today.getMonth()===m && today.getDate()===day;
+    const cell = document.createElement('div');
+    cell.className = `cal-day${!isThis?' other-month':''}${isToday?' today':''}${calNotes[ds]?.length&&isThis?' has-note':''}${selectedDate===ds?' selected':''}`;
+    cell.innerHTML = `<div class="day-num">${day}</div>${calNotes[ds]?.length&&isThis?'<div class="day-dot"></div>':''}`;
+    if (isThis) cell.onclick = () => selectDay(ds);
+    grid.appendChild(cell);
+  }
+}
+
+function selectDay(ds) {
+  selectedDate = ds;
+  renderCalendar();
+  const p = ds.split('-');
+  document.getElementById('note-panel').style.display = 'block';
+  document.getElementById('note-panel-title').textContent = `${parseInt(p[2])} ${MONTHS[parseInt(p[1])-1]} ${p[0]}`;
+  renderNotes(ds);
+}
+
+function renderNotes(ds) {
+  const list = document.getElementById('notes-list');
+  const items = calNotes[ds] || [];
+  if (!items.length) { list.innerHTML = '<p class="empty-msg">No notes for this day</p>'; return; }
+  list.innerHTML = items.map(n =>
+    `<div class="note-item">
+      <div class="note-av" style="background:${n.bg};color:${n.col}">${n.who}</div>
+      <span class="note-text">${n.text}</span>
+      <button class="del-btn" onclick="deleteCalNote('${n.id}')">&#215;</button>
+    </div>`
+  ).join('');
+}
+
+window.addCalNote = async () => {
+  const input = document.getElementById('note-input');
+  const text = input.value.trim();
+  if (!text || !selectedDate) return;
+  const whoKey = document.getElementById('note-who').value;
+  const p = getPerson(whoKey);
+  input.value = '';
+  if (db) {
+    await addDoc(collection(db, 'calendarNotes'), { date: selectedDate, who: p.init, text, bg: p.bg, col: p.col, createdAt: serverTimestamp() });
+  } else {
+    if (!calNotes[selectedDate]) calNotes[selectedDate] = [];
+    calNotes[selectedDate].push({ id: Date.now().toString(), date: selectedDate, who: p.init, text, bg: p.bg, col: p.col });
+    renderCalendar(); renderNotes(selectedDate);
+  }
+};
+
+window.deleteCalNote = async id => {
+  if (db) { await deleteDoc(doc(db, 'calendarNotes', id)); }
+  else {
+    Object.keys(calNotes).forEach(d => { calNotes[d] = calNotes[d].filter(n => n.id !== id); });
+    renderCalendar(); renderNotes(selectedDate);
+  }
+};
+
+window.toggleMic = () => {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Voice notes work in Chrome — try typing instead!'); return; }
+  if (recording) return;
+  recording = true;
+  document.getElementById('mic-btn').classList.add('recording');
+  const r = new SR();
+  r.onresult = e => { document.getElementById('note-input').value = e.results[0][0].transcript; recording = false; document.getElementById('mic-btn').classList.remove('recording'); };
+  r.onerror = () => { recording = false; document.getElementById('mic-btn').classList.remove('recording'); };
+  r.start();
+};
+
+// ── Probate ───────────────────────────────────────────────────
+const PROBATE_VAL = [
+  { text:'Contact all banks for date of death balance', assignee:'adam' },
+  { text:'Contact pension providers for date of death balance', assignee:'laura' },
+  { text:'Get car value from AutoTrader', assignee:'emma' },
+  { text:'Jewellery — probate valuation (not insurance)', assignee:'daniel' },
+];
+const PROBATE_FORM = [
+  { text:'Fill in IHT205 form' },
+  { text:'Fill in PA1P at gov.uk/applying-for-probate' },
+  { text:'Get forms checked — Citizens Advice or withfarra.co.uk' },
+  { text:'Pay £300 court fee' },
+  { text:'Submit online and await grant (2–5 weeks)' },
+];
+
+function renderProbateSection(prefix, title, items, cardId) {
+  const done = items.filter((_,i) => probateChecks[`${prefix}_${i}`]).length;
+  const pct = Math.round(done/items.length*100);
+  document.getElementById(cardId).innerHTML = `
+    <div class="section-card-title"><span>${title}</span><span class="prog-label${done===items.length?' prog-done':''}">${done} of ${items.length}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="items-list">
+      ${items.map((item,i) => {
+        const p = item.assignee ? getPerson(item.assignee) : null;
+        return `<div class="check-item">
+          <div class="chk${probateChecks[`${prefix}_${i}`]?' done':''}" onclick="toggleProbate('${prefix}_${i}')"></div>
+          <span class="${probateChecks[`${prefix}_${i}`]?'done-text':''}">${item.text}</span>
+          ${p?`<div class="badge-av" style="background:${p.bg};color:${p.col}">${p.init}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+window.toggleProbate = async key => {
+  const newVal = !probateChecks[key];
+  probateChecks[key] = newVal;
+  renderProbateSection('val','Valuations',PROBATE_VAL,'probate-val-card');
+  renderProbateSection('form','Forms & submission',PROBATE_FORM,'probate-form-card');
+  if (db) await setDoc(doc(db,'probate','checklist'), { [key]: newVal }, { merge: true });
+};
+
+// ── Personal lists ────────────────────────────────────────────
+function renderPersonLists() {
+  const container = document.getElementById('person-lists');
+  container.innerHTML = '';
+  PEOPLE.forEach(person => {
+    const items = personalLists[person.key] || [];
+    const done = items.filter(i => i.done).length;
+    const pct = items.length ? Math.round(done/items.length*100) : 0;
+    const card = document.createElement('div');
+    card.className = 'person-card';
+    card.style.borderTop = `3px solid ${person.accent}`;
+    card.innerHTML = `
+      <div class="person-card-header">
+        <div class="person-header-left">
+          <div class="person-av" style="background:${person.bg};color:${person.col}">${person.init}</div>
+          <div>
+            <div class="person-name">${person.name}</div>
+            <div class="person-count">${done} of ${items.length} done</div>
+          </div>
+        </div>
+        <button class="quick-add-btn" style="border-color:${person.accent};color:${person.col}" onclick="toggleQuickAdd('${person.key}')">+ Quick add</button>
+      </div>
+      <div class="progress-bar" style="border-radius:0;margin:0"><div class="progress-fill" style="width:${pct}%;background:${person.accent}"></div></div>
+      <div id="qa-${person.key}" class="quick-add-panel">
+        <select id="qf-${person.key}" style="font-size:12px">
+          ${PEOPLE.map(p=>`<option value="${p.key}">From ${p.name}</option>`).join('')}
+        </select>
+        <input type="text" id="qi-${person.key}" placeholder="Add to ${person.name}'s list..." onkeydown="if(event.key==='Enter')submitQuickAdd('${person.key}')"/>
+        <button class="btn-save" onclick="submitQuickAdd('${person.key}')">Add</button>
+        <button class="btn-cancel" onclick="toggleQuickAdd('${person.key}')">✕</button>
+      </div>
+      <div class="person-card-body">
+        ${!items.length ? '<p class="empty-msg">No items yet</p>' : items.map(item => {
+          const fp = item.from ? getPerson(item.from) : null;
+          return `<div class="person-item">
+            <div class="chk${item.done?' done':''}" onclick="togglePersonal('${person.key}','${item.id}')"></div>
+            <span style="flex:1" class="${item.done?'done-text':''}">${item.text}${fp?`<span class="from-badge" style="background:${fp.bg};color:${fp.col}">from ${fp.name}</span>`:''}</span>
+            <button class="del-btn" onclick="deletePersonal('${person.key}','${item.id}')">&#215;</button>
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="person-add-row">
+        <input type="text" id="pi-${person.key}" placeholder="Add own item..." onkeydown="if(event.key==='Enter')addPersonalOwn('${person.key}')"/>
+        <button onclick="addPersonalOwn('${person.key}')">Add</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+window.toggleQuickAdd = key => {
+  document.querySelectorAll('.quick-add-panel').forEach(p => { if (p.id !== `qa-${key}`) p.classList.remove('open'); });
+  const panel = document.getElementById(`qa-${key}`);
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) setTimeout(() => document.getElementById(`qi-${key}`)?.focus(), 50);
+};
+
+async function savePersonalLists() {
+  if (db) await setDoc(doc(db,'personalLists','all'), personalLists, { merge: true });
+}
+
+window.submitQuickAdd = async key => {
+  const input = document.getElementById(`qi-${key}`);
+  const text = input.value.trim();
+  if (!text) return;
+  const fromKey = document.getElementById(`qf-${key}`).value;
+  personalLists[key] = [...(personalLists[key]||[]), { text, done: false, from: fromKey, id: Date.now().toString() }];
+  input.value = '';
+  document.getElementById(`qa-${key}`).classList.remove('open');
+  renderPersonLists();
+  await savePersonalLists();
+};
+
+window.addPersonalOwn = async key => {
+  const input = document.getElementById(`pi-${key}`);
+  const text = input.value.trim();
+  if (!text) return;
+  personalLists[key] = [...(personalLists[key]||[]), { text, done: false, from: null, id: Date.now().toString() }];
+  input.value = '';
+  renderPersonLists();
+  await savePersonalLists();
+};
+
+window.togglePersonal = async (key, id) => {
+  personalLists[key] = personalLists[key].map(i => i.id===id ? {...i, done:!i.done} : i);
+  renderPersonLists();
+  await savePersonalLists();
+};
+
+window.deletePersonal = async (key, id) => {
+  personalLists[key] = personalLists[key].filter(i => i.id!==id);
+  renderPersonLists();
+  await savePersonalLists();
+};
+
+// ── Shared lists ──────────────────────────────────────────────
+function renderSharedLists() {
+  const container = document.getElementById('shared-lists');
+  container.innerHTML = '';
+  sharedLists.forEach(list => {
+    const done = list.items.filter(i => i.done).length;
+    const pct = list.items.length ? Math.round(done/list.items.length*100) : 0;
+    const card = document.createElement('div');
+    card.className = 'section-card';
+    card.innerHTML = `
+      <div class="section-card-title">
+        <span>${list.name}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="prog-label">${done} of ${list.items.length}</span>
+          <button class="del-btn" onclick="deleteSharedList('${list.id}')" title="Delete list">&#215;</button>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="items-list" style="margin-top:8px">
+        ${!list.items.length ? '<p class="empty-msg">No items yet</p>' : list.items.map(item =>
+          `<div class="check-item">
+            <div class="chk${item.done?' done':''}" onclick="toggleSharedItem('${list.id}','${item.id}')"></div>
+            <span class="${item.done?'done-text':''}">${item.text}</span>
+          </div>`
+        ).join('')}
+      </div>
+      <div class="add-row">
+        <input type="text" id="sli-${list.id}" placeholder="Add item..." onkeydown="if(event.key==='Enter')addSharedItem('${list.id}')"/>
+        <button onclick="addSharedItem('${list.id}')">Add</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+window.createSharedList = async () => {
+  const input = document.getElementById('new-list-input');
+  const name = input.value.trim();
+  if (!name) return;
+  input.value = '';
+  if (db) {
+    await addDoc(collection(db,'sharedLists'), { name, items:[], createdAt: serverTimestamp() });
+  } else {
+    sharedLists.push({ id: Date.now().toString(), name, items:[] });
+    renderSharedLists();
+  }
+};
+
+window.addSharedItem = async id => {
+  const input = document.getElementById(`sli-${id}`);
+  const text = input.value.trim();
+  if (!text) return;
+  const list = sharedLists.find(l => l.id===id);
+  const newItem = { text, done: false, id: Date.now().toString() };
+  input.value = '';
+  if (db) {
+    await updateDoc(doc(db,'sharedLists',id), { items: [...(list.items||[]), newItem] });
+  } else {
+    list.items.push(newItem);
+    renderSharedLists();
+  }
+};
+
+window.toggleSharedItem = async (listId, itemId) => {
+  const list = sharedLists.find(l => l.id===listId);
+  const updated = list.items.map(i => i.id===itemId ? {...i, done:!i.done} : i);
+  if (db) { await updateDoc(doc(db,'sharedLists',listId), { items: updated }); }
+  else { list.items = updated; renderSharedLists(); }
+};
+
+window.deleteSharedList = async id => {
+  if (!confirm('Delete this list?')) return;
+  if (db) { await deleteDoc(doc(db,'sharedLists',id)); }
+  else { sharedLists = sharedLists.filter(l => l.id!==id); renderSharedLists(); }
+};
+
+// ── Tabs ─────────────────────────────────────────────────────
+window.showTab = (tab, btn) => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  btn.classList.add('active');
+};
+
+// ── Init ──────────────────────────────────────────────────────
+renderCalendar();
+renderProbateSection('val','Valuations',PROBATE_VAL,'probate-val-card');
+renderProbateSection('form','Forms & submission',PROBATE_FORM,'probate-form-card');
+renderPersonLists();
+renderSharedLists();
+
+</script>
+</body>
+</html>
