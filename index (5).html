@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Family"/>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+<meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)"/>
+<title>Family Organiser</title>
+<style>
+:root{--bg:#fff;--bg2:#f5f5f0;--bg3:#f0f0ec;--border:#e8e8e4;--border2:#d0d0cc;--text:#1a1a1a;--text2:#555;--text3:#888;--text4:#aaa;--card:#fff;--input:#f9f9f7;--nav:#fff;--green:#1D9E75;--blue:#378ADD;--red:#EF4444;}
+@media(prefers-color-scheme:dark){:root{--bg:#1a1a1a;--bg2:#111;--bg3:#2a2a2a;--border:#333;--border2:#444;--text:#f0f0ec;--text2:#bbb;--text3:#888;--text4:#555;--card:#242424;--input:#2a2a2a;--nav:#1e1e1e;}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8e8f0;color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+@media(prefers-color-scheme:dark){body{background:#1a0e14}}
+#blossom-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.app{max-width:820px;margin:0 auto;background:rgba(255,255,255,0.93);min-height:100vh;border-left:1px solid var(--border);border-right:1px solid var(--border);position:relative;z-index:1}
+@media(prefers-color-scheme:dark){.app{background:rgba(26,26,26,0.94)}}
+.topbar{background:var(--nav);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.app-icon{width:32px;height:32px;border-radius:8px;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#ccc;margin-left:4px;transition:background .3s;flex-shrink:0}
+.sync-dot.synced{background:var(--green)}.sync-dot.error{background:var(--red)}
+.avatars{display:flex;gap:2px}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:2px solid var(--bg)}
+.nav{display:flex;background:var(--nav);border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:9;overflow-x:auto}
+.nav-btn{flex:1;min-width:56px;padding:11px 4px;font-size:11px;font-weight:500;color:var(--text3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-btn:hover{color:var(--text)}.nav-btn.active{color:var(--text);border-bottom-color:var(--text)}
+.tab{display:none;padding:16px}.tab.active{display:block}
+.section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+/* lock */
+.lock-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px}
+.lock-box{width:100%;max-width:340px;text-align:center}
+.lock-icon{width:56px;height:56px;border-radius:16px;background:var(--text);color:var(--bg);display:flex;align-items:center;justify-content:center;margin:0 auto 20px}
+.lock-title{font-size:20px;font-weight:700;color:var(--text);margin-bottom:6px}
+.lock-sub{font-size:14px;color:var(--text3);margin-bottom:24px}
+.lock-input{width:100%;font-size:16px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--input);color:var(--text);outline:none;text-align:center;letter-spacing:.1em;margin-bottom:12px}
+.lock-input:focus{border-color:var(--text)}
+.lock-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--text);color:var(--bg);font-size:15px;font-weight:700;cursor:pointer}
+.lock-error{font-size:13px;color:var(--red);margin-top:10px;min-height:20px}
+/* install */
+.install-banner{background:var(--text);color:var(--bg);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+.install-banner button{padding:6px 14px;border-radius:8px;border:1.5px solid var(--bg);background:transparent;color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}
+.install-banner .dismiss{background:none;border:none;color:var(--bg);opacity:.6;font-size:20px;cursor:pointer;padding:0;line-height:1}
+/* calendar */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-title{font-size:16px;font-weight:600}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:16px;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:14px}
+.cal-day-label{text-align:center;font-size:10px;color:var(--text3);padding:4px 0;font-weight:700}
+.cal-day{min-height:44px;background:var(--card);border-radius:8px;border:1px solid var(--border);padding:5px;cursor:pointer}
+.cal-day:hover{background:var(--bg3)}.cal-day.today{border:2px solid var(--text)}
+.cal-day.has-note{background:#EBF4FF}.cal-day.other-month{opacity:.25;pointer-events:none}
+.cal-day.selected{border:2px solid var(--green);background:#E1F5EE}
+@media(prefers-color-scheme:dark){.cal-day.has-note{background:#0C447C44}.cal-day.selected{background:#085041aa}}
+.day-num{font-size:11px;font-weight:700}.day-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);margin-top:3px}
+.note-panel{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px}
+.note-panel-title{font-size:14px;font-weight:600;margin-bottom:10px}
+.note-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.note-item:last-of-type{border-bottom:none}
+.note-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.note-text{flex:1;line-height:1.4}
+.add-note-row{display:flex;gap:6px;margin-top:10px;align-items:center;flex-wrap:wrap}
+.add-note-row select,.add-note-row input[type=text]{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.add-note-row input[type=text]{flex:1;min-width:100px}
+.mic-btn,.photo-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text)}
+.mic-btn.recording{background:#FEE2E2;border-color:var(--red);color:var(--red)}
+.btn-primary{padding:8px 14px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:13px;cursor:pointer;font-weight:600}
+/* cards */
+.section-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:12px}
+.section-card-title{font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.prog-label{font-size:12px;color:var(--text3);font-weight:400}.prog-done{color:var(--green)!important}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .3s}
+.items-list{margin-top:10px}
+.check-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px}
+.check-item:last-child{border-bottom:none}
+.chk{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--card)}
+.chk:hover{border-color:var(--green)}.chk.done{background:var(--green);border-color:var(--green)}
+.chk.done::after{content:'';display:block;width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.done-text{text-decoration:line-through;color:var(--text4)}
+.badge-av{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;margin-left:auto;flex-shrink:0}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--text4);font-size:16px;line-height:1;padding:0 2px;flex-shrink:0;margin-left:auto}
+.del-btn:hover{color:var(--red)}
+.empty-msg{font-size:13px;color:var(--text3);padding:8px 0}
+.info-box{background:#EBF4FF;border-radius:10px;padding:12px 14px;font-size:13px;color:#0C447C;line-height:1.6;margin-top:4px}
+@media(prefers-color-scheme:dark){.info-box{background:#0C447C44;color:#85B7EB}}
+.info-box a{color:#185FA5}
+.completed-toggle{font-size:12px;color:var(--text3);cursor:pointer;padding:6px 0;display:flex;align-items:center;gap:4px;margin-top:4px;user-select:none}
+.completed-section{margin-top:4px}
+/* probate detail */
+.probate-detail-panel{display:none;padding:8px 0 4px 28px;gap:6px;flex-direction:column}
+.probate-detail-panel.open{display:flex}
+.probate-detail-panel input[type=text],.probate-detail-panel input[type=date]{font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none;width:100%}
+.probate-detail-btn{padding:6px 14px;border-radius:8px;border:none;background:var(--green);color:#fff;font-size:12px;font-weight:600;cursor:pointer;align-self:flex-start}
+.probate-done-detail{font-size:11px;color:var(--text3);margin-top:2px;padding-left:28px}
+/* person lists */
+.person-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:20px}
+.person-card{background:var(--card);border-radius:12px;border:1px solid var(--border);overflow:hidden}
+.person-card-header{padding:11px 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.person-header-left{display:flex;align-items:center;gap:9px}
+.person-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.person-name{font-size:13px;font-weight:600}.person-count{font-size:11px;color:var(--text3)}
+.quick-add-btn{padding:4px 11px;border-radius:20px;border:1.5px solid;font-size:11px;font-weight:700;cursor:pointer;background:transparent}
+.quick-add-panel{display:none;gap:6px;align-items:center;padding:9px 13px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.quick-add-panel.open{display:flex}
+.quick-add-panel select,.quick-add-panel input{font-size:12px;padding:6px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);outline:none}
+.quick-add-panel input{flex:1}
+.quick-add-panel .btn-save{padding:6px 10px;border-radius:8px;border:none;font-size:12px;cursor:pointer;background:var(--text);color:var(--bg);font-weight:600}
+.quick-add-panel .btn-cancel{padding:6px 8px;border-radius:8px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--card);color:var(--text3)}
+.person-card-body{padding:2px 13px}
+.person-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.person-item:last-child{border-bottom:none}
+.from-badge{display:inline-block;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;margin-left:5px}
+.person-add-row{display:flex;gap:6px;padding:9px 13px;border-top:1px solid var(--border)}
+.person-add-row input{flex:1;font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.person-add-row button{padding:7px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--card);color:var(--text);font-weight:500}
+/* shared lists */
+.new-list-row{display:flex;gap:8px;margin-bottom:12px}
+.new-list-row input{flex:1;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.new-list-row button{padding:10px 16px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;background:var(--text);color:var(--bg)}
+.add-row{display:flex;gap:6px;margin-top:8px}
+.add-row input{flex:1;font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.add-row button{padding:7px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;cursor:pointer;background:var(--card);color:var(--text)}
+/* contacts */
+.contact-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.contact-av{width:40px;height:40px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text2);flex-shrink:0}
+.contact-info{flex:1;min-width:0}
+.contact-name{font-size:14px;font-weight:600}
+.contact-role{font-size:12px;color:var(--text3);margin-top:1px}
+.contact-number{font-size:13px;color:var(--blue);margin-top:3px;text-decoration:none;display:block}
+.add-contact-form{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.add-contact-form input{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.add-contact-form button{grid-column:1/-1;padding:9px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:13px;font-weight:600;cursor:pointer}
+/* notes */
+.notes-area{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:12px}
+.notes-area textarea{width:100%;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none;resize:vertical;min-height:120px;font-family:inherit;line-height:1.6}
+.notes-area-title{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.notes-save-btn{padding:5px 14px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}
+.notes-mic-btn{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--card);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:var(--text);flex-shrink:0}
+.notes-mic-btn.recording{background:#FEE2E2;border-color:var(--red);color:var(--red)}
+/* doc checklist */
+.doc-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.doc-item:last-child{border-bottom:none}
+.doc-note{font-size:11px;color:var(--text3);margin-top:2px}
+/* document links */
+.doc-link-card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.doc-link-icon{width:38px;height:38px;border-radius:9px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2)}
+.doc-link-info{flex:1;min-width:0}
+.doc-link-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-link-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.doc-link-open{font-size:11px;color:var(--blue);text-decoration:none;font-weight:600;flex-shrink:0}
+.add-doc-form{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px;margin-bottom:16px;display:flex;flex-direction:column;gap:8px}
+.add-doc-form input,.add-doc-form select{font-size:13px;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.add-doc-form button{padding:10px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:13px;font-weight:600;cursor:pointer}
+/* expenses */
+.expense-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.expense-item:last-child{border-bottom:none}
+.expense-amount{font-size:15px;font-weight:700;color:var(--text);min-width:64px}
+.expense-info{flex:1;min-width:0}
+.expense-desc{font-size:13px;font-weight:500}
+.expense-meta{font-size:11px;color:var(--text3);margin-top:2px}
+.expense-total{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;padding:8px 0;border-bottom:2px solid var(--border);margin-bottom:4px}
+.expense-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.expense-form input,.expense-form select{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none}
+.expense-form button{grid-column:1/-1;padding:9px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:13px;font-weight:600;cursor:pointer}
+.pexp-card{background:var(--card);border-radius:12px;border:1px solid var(--border);margin-bottom:12px;overflow:hidden}
+.pexp-header{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--border)}
+.pexp-body{padding:4px 13px 8px}
+.pexp-form{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 13px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.pexp-form input{font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);outline:none}
+.pexp-form button{grid-column:1/-1;padding:7px;border-radius:8px;border:none;background:var(--text);color:var(--bg);font-size:12px;font-weight:600;cursor:pointer}
+@media(max-width:600px){.tab{padding:12px}.person-lists{grid-template-columns:1fr}.cal-day{min-height:38px}.add-contact-form{grid-template-columns:1fr}.expense-form{grid-template-columns:1fr}.pexp-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<canvas id="blossom-canvas"></canvas>
+<div class="app">
+
+<div id="lock-screen" class="lock-screen">
+  <div class="lock-box">
+    <div class="lock-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <div class="lock-title">Family organiser</div>
+    <div class="lock-sub">Enter the password to continue</div>
+    <input type="password" class="lock-input" id="lock-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()"/>
+    <button class="lock-btn" onclick="checkPassword()">Unlock</button>
+    <div class="lock-error" id="lock-error"></div>
+  </div>
+</div>
+
+<div id="install-banner" class="install-banner" style="display:none">
+  <span>Add to your home screen for easy access</span>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button id="install-btn">Install</button>
+    <button class="dismiss" onclick="document.getElementById('install-banner').style.display='none'">&#215;</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="app-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
+    <span class="topbar-title">Family organiser</span>
+    <span class="sync-dot" id="sync-dot"></span>
+  </div>
+  <div class="avatars">
+    <div class="av" style="background:#E6F1FB;color:#0C447C">A</div>
+    <div class="av" style="background:#E1F5EE;color:#085041">L</div>
+    <div class="av" style="background:#FBEAF0;color:#72243E">E</div>
+    <div class="av" style="background:#FAEEDA;color:#633806">D</div>
+    <div class="av" style="background:#FEFCE8;color:#854D0E">An</div>
+  </div>
+</header>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showTab('calendar',this)">Calendar</button>
+  <button class="nav-btn" onclick="showTab('probate',this)">Probate</button>
+  <button class="nav-btn" onclick="showTab('lists',this)">Lists</button>
+  <button class="nav-btn" onclick="showTab('docs',this)">Documents</button>
+  <button class="nav-btn" onclick="showTab('files',this)">Files</button>
+  <button class="nav-btn" onclick="showTab('expenses',this)">Expenses</button>
+  <button class="nav-btn" onclick="showTab('contacts',this)">Contacts</button>
+  <button class="nav-btn" onclick="showTab('notes',this)">Notes</button>
+</nav>
+
+<!-- CALENDAR -->
+<div id="tab-calendar" class="tab active">
+  <div class="cal-header">
+    <h2 class="cal-title" id="cal-title"></h2>
+    <div class="cal-nav"><button onclick="changeMonth(-1)">&#8249;</button><button onclick="changeMonth(1)">&#8250;</button></div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div id="note-panel" class="note-panel" style="display:none">
+    <div class="note-panel-title" id="note-panel-title"></div>
+    <div id="notes-list"></div>
+    <div class="add-note-row">
+      <select id="note-who"><option value="adam">Adam</option><option value="laura">Laura</option><option value="emma">Emma</option><option value="daniel">Daniel</option><option value="andrew">Andrew</option></select>
+      <input type="text" id="note-input" placeholder="Add a note..." onkeydown="if(event.key==='Enter')addCalNote()"/>
+      <input type="file" id="photo-input" accept="image/*" onchange="handlePhotoSelect()" style="display:none"/>
+      <button class="photo-btn" onclick="document.getElementById('photo-input').click()" title="Attach photo"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg></button>
+      <button class="mic-btn" id="mic-btn" onclick="toggleMic()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+      <button class="btn-primary" onclick="addCalNote()">Add</button>
+    </div>
+    <div id="photo-preview" style="margin-top:6px;font-size:12px;color:var(--text3)"></div>
+  </div>
+</div>
+
+<!-- PROBATE -->
+<div id="tab-probate" class="tab">
+  <div class="section-card">
+    <div class="section-card-title"><span>Already sorted</span><span class="prog-label prog-done">3 of 3</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    <div class="items-list">
+      <div class="check-item"><div class="chk done"></div><span class="done-text">House valued</span></div>
+      <div class="check-item"><div class="chk done"></div><span class="done-text">Estate confirmed under £325k — no inheritance tax</span></div>
+      <div class="check-item"><div class="chk done"></div><span class="done-text">Misc items under £500 — self-estimated</span></div>
+    </div>
+  </div>
+  <div class="section-card" id="probate-val-card"></div>
+  <div class="section-card" id="probate-form-card"></div>
+  <div class="info-box">Apply online at gov.uk — 2–5 weeks. Check forms free at <a href="https://withfarra.co.uk" target="_blank">withfarra.co.uk</a> or Citizens Advice.</div>
+</div>
+
+<!-- LISTS -->
+<div id="tab-lists" class="tab">
+  <div class="section-label">Personal lists</div>
+  <div class="person-lists" id="person-lists"></div>
+  <div class="section-label">Shared lists</div>
+  <div class="new-list-row">
+    <input type="text" id="new-list-input" placeholder="New shared list name..." onkeydown="if(event.key==='Enter')createSharedList()"/>
+    <button onclick="createSharedList()">+ Create</button>
+  </div>
+  <div id="shared-lists"></div>
+</div>
+
+<!-- DOCUMENTS CHECKLIST -->
+<div id="tab-docs" class="tab">
+  <div class="section-card" id="doc-checklist"></div>
+</div>
+
+<!-- FILES (Google Drive links) -->
+<div id="tab-files" class="tab">
+  <div class="section-label">Add a document link</div>
+  <div class="add-doc-form">
+    <input type="text" id="fl-name" placeholder="Document name (e.g. Death Certificate copy)"/>
+    <input type="text" id="fl-url" placeholder="Google Drive / OneDrive link"/>
+    <select id="fl-cat">
+      <option value="Probate">Probate</option>
+      <option value="Financial">Financial</option>
+      <option value="Property">Property</option>
+      <option value="Personal">Personal</option>
+      <option value="Other">Other</option>
+    </select>
+    <select id="fl-who">
+      <option value="adam">Added by Adam</option>
+      <option value="laura">Added by Laura</option>
+      <option value="emma">Added by Emma</option>
+      <option value="daniel">Added by Daniel</option>
+      <option value="andrew">Added by Andrew</option>
+    </select>
+    <button onclick="addFileLink()">+ Add document</button>
+  </div>
+  <div class="section-label">Saved documents</div>
+  <div id="files-list"></div>
+</div>
+
+<!-- EXPENSES -->
+<div id="tab-expenses" class="tab">
+  <div class="section-label">General expenses (e.g. funeral, probate fees)</div>
+  <div class="section-card">
+    <div class="expense-form">
+      <input type="text" id="gexp-desc" placeholder="Description"/>
+      <input type="number" id="gexp-amount" placeholder="Amount £" step="0.01"/>
+      <select id="gexp-who"><option value="adam">Paid by Adam</option><option value="laura">Paid by Laura</option><option value="emma">Paid by Emma</option><option value="daniel">Paid by Daniel</option><option value="andrew">Paid by Andrew</option></select>
+      <input type="date" id="gexp-date"/>
+      <button onclick="addGeneralExpense()">+ Add general expense</button>
+    </div>
+    <div id="general-expenses-list"><p class="empty-msg">No general expenses yet</p></div>
+  </div>
+  <div class="section-label" style="margin-top:8px">Personal expenses</div>
+  <div id="personal-expenses-list"></div>
+</div>
+
+<!-- CONTACTS -->
+<div id="tab-contacts" class="tab">
+  <div class="add-contact-form">
+    <input type="text" id="ct-name" placeholder="Name"/>
+    <input type="text" id="ct-role" placeholder="Role (e.g. Solicitor)"/>
+    <input type="tel" id="ct-number" placeholder="Phone number"/>
+    <input type="text" id="ct-note" placeholder="Note (optional)"/>
+    <button onclick="addContact()">+ Add contact</button>
+  </div>
+  <div id="contacts-list"></div>
+</div>
+
+<!-- NOTES -->
+<div id="tab-notes" class="tab">
+  <div id="notes-sections"></div>
+</div>
+
+</div><!-- end .app -->
+
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+import{getFirestore,collection,doc,onSnapshot,setDoc,addDoc,deleteDoc,updateDoc,query,orderBy,serverTimestamp}
+  from'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+
+// ── Password ──
+const PASSWORD='WaxMoon88';
+window.checkPassword=()=>{
+  if(document.getElementById('lock-input').value===PASSWORD){
+    sessionStorage.setItem('fo_auth','1');
+    document.getElementById('lock-screen').style.display='none';
+  } else {
+    document.getElementById('lock-error').textContent='Incorrect password — try again';
+    document.getElementById('lock-input').value='';
+  }
+};
+if(sessionStorage.getItem('fo_auth')==='1')document.getElementById('lock-screen').style.display='none';
+else setTimeout(()=>document.getElementById('lock-input').focus(),100);
+
+// ── Firebase ──
+const app=initializeApp({
+  apiKey:'AIzaSyCJZ8qTFWy6cshvsOsT0Jk5tOQtMXJjt00',
+  authDomain:'family-organiser-701f1.firebaseapp.com',
+  projectId:'family-organiser-701f1',
+  storageBucket:'family-organiser-701f1.firebasestorage.app',
+  messagingSenderId:'710985683364',
+  appId:'1:710985683364:web:001b77f29c992238e8b131'
+});
+const db=getFirestore(app);
+
+// ── People ──
+const PEOPLE=[
+  {key:'adam',   name:'Adam',   init:'A',  bg:'#E6F1FB',col:'#0C447C',accent:'#378ADD'},
+  {key:'laura',  name:'Laura',  init:'L',  bg:'#E1F5EE',col:'#085041',accent:'#1D9E75'},
+  {key:'emma',   name:'Emma',   init:'E',  bg:'#FBEAF0',col:'#72243E',accent:'#D4537E'},
+  {key:'daniel', name:'Daniel', init:'D',  bg:'#FAEEDA',col:'#633806',accent:'#BA7517'},
+  {key:'andrew', name:'Andrew', init:'An', bg:'#FEFCE8',col:'#854D0E',accent:'#EAB308'},
+];
+const getPerson=k=>PEOPLE.find(p=>p.key===k)||PEOPLE[0];
+
+// ── Probate items ──
+const PROBATE_VAL=[
+  {text:'Contact all banks for date of death balance',assignee:'adam'},
+  {text:'Contact pension providers for date of death balance',assignee:'laura'},
+  {text:'Get car value from AutoTrader',assignee:'emma'},
+  {text:'Jewellery — probate valuation (not insurance)',assignee:'daniel'},
+];
+const PROBATE_FORM=[
+  {text:'Fill in IHT205 form'},
+  {text:'Fill in PA1P at gov.uk/applying-for-probate'},
+  {text:'Get forms checked — Citizens Advice or withfarra.co.uk'},
+  {text:'Pay £300 court fee'},
+  {text:'Submit online and await grant (2–5 weeks)'},
+];
+const DOC_CHECKLIST=[
+  {text:'Original will',note:'Keep the original safe — probate registry needs it'},
+  {text:'Death certificate (x8 copies)',note:'Order extra copies — banks need originals'},
+  {text:'Property deeds or Land Registry title',note:''},
+  {text:'Bank statements (all accounts)',note:'Need date-of-death balances'},
+  {text:'Pension provider details',note:'Contact each to confirm death-in-service benefits'},
+  {text:'Car logbook (V5)',note:'Needed to transfer or sell the car'},
+  {text:'Jewellery valuation certificate',note:'From jeweller — must say "probate valuation"'},
+  {text:'Outstanding bills and debts',note:'Utility bills, credit cards, any loans'},
+  {text:'Insurance policies',note:'Home, car, life — check for any payouts'},
+  {text:'National Insurance number',note:'Needed for HMRC forms'},
+  {text:'Passport or photo ID',note:'May be needed for identity checks'},
+  {text:'IHT205 form (completed)',note:'Simpler tax form — estate under £325k'},
+  {text:'PA1P probate application (completed)',note:'Apply online at gov.uk'},
+];
+
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const fmtDate=d=>{if(!d)return'';const[y,m,dy]=d.split('-');return`${dy}/${m}/${y}`;};
+
+// ── State ──
+let calNotes={},probateChecks={},probateDetails={},docChecks={};
+let personalLists={adam:[],laura:[],emma:[],daniel:[],andrew:[]};
+let sharedLists=[],contacts=[],freeNotes={};
+let fileLinks=[],generalExpenses=[],personalExpenses={adam:[],laura:[],emma:[],daniel:[],andrew:[]};
+let selectedDate=null,currentDate=new Date(),recording=false,pendingPhoto=null;
+
+const syncDot=document.getElementById('sync-dot');
+const setSynced=ok=>syncDot.className='sync-dot '+(ok?'synced':'error');
+
+// ── Firebase listeners ──
+onSnapshot(query(collection(db,'calendarNotes'),orderBy('createdAt','asc')),snap=>{
+  calNotes={};snap.forEach(d=>{const n=d.data();if(!calNotes[n.date])calNotes[n.date]=[];calNotes[n.date].push({id:d.id,...n});});
+  renderCalendar();if(selectedDate)renderNotes(selectedDate);setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(doc(db,'probate','checklist'),snap=>{probateChecks=snap.exists()?snap.data():{};renderProbate();setSynced(true);},()=>setSynced(false));
+onSnapshot(doc(db,'probate','details'),snap=>{probateDetails=snap.exists()?snap.data():{};renderProbate();},()=>{});
+onSnapshot(doc(db,'docs','checklist'),snap=>{docChecks=snap.exists()?snap.data():{};renderDocChecklist();setSynced(true);},()=>setSynced(false));
+
+onSnapshot(doc(db,'personalLists','all'),snap=>{
+  const data=snap.exists()?snap.data():{};PEOPLE.forEach(p=>{personalLists[p.key]=data[p.key]||[];});renderPersonLists();setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(query(collection(db,'sharedLists'),orderBy('createdAt','asc')),snap=>{
+  sharedLists=snap.docs.map(d=>({id:d.id,...d.data()}));renderSharedLists();setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(query(collection(db,'contacts'),orderBy('createdAt','asc')),snap=>{
+  contacts=snap.docs.map(d=>({id:d.id,...d.data()}));renderContacts();setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(doc(db,'freeNotes','all'),snap=>{
+  freeNotes=snap.exists()?snap.data():{};
+  PEOPLE.forEach(p=>{const el=document.getElementById('note-'+p.key);if(el&&freeNotes[p.key]!==undefined)el.value=freeNotes[p.key];});
+  setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(query(collection(db,'fileLinks'),orderBy('createdAt','asc')),snap=>{
+  fileLinks=snap.docs.map(d=>({id:d.id,...d.data()}));renderFileLinks();setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(query(collection(db,'generalExpenses'),orderBy('createdAt','asc')),snap=>{
+  generalExpenses=snap.docs.map(d=>({id:d.id,...d.data()}));renderGeneralExpenses();setSynced(true);
+},()=>setSynced(false));
+
+onSnapshot(doc(db,'personalExpenses','all'),snap=>{
+  const data=snap.exists()?snap.data():{};PEOPLE.forEach(p=>{personalExpenses[p.key]=data[p.key]||[];});renderPersonalExpenses();setSynced(true);
+},()=>setSynced(false));
+
+// ── Install banner ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').style.display='flex';
+  document.getElementById('install-btn').onclick=async()=>{deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;document.getElementById('install-banner').style.display='none';};
+});
+
+// ── Tabs ──
+window.showTab=(tab,btn)=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');btn.classList.add('active');
+};
+
+// ── Calendar ──
+window.changeMonth=dir=>{currentDate.setMonth(currentDate.getMonth()+dir);selectedDate=null;document.getElementById('note-panel').style.display='none';renderCalendar();};
+function renderCalendar(){
+  const y=currentDate.getFullYear(),m=currentDate.getMonth();
+  document.getElementById('cal-title').textContent=MONTHS[m]+' '+y;
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  DAYS.forEach(d=>{const el=document.createElement('div');el.className='cal-day-label';el.textContent=d;grid.appendChild(el);});
+  const fdow=(new Date(y,m,1).getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),dip=new Date(y,m,0).getDate(),today=new Date();
+  for(let i=0;i<42;i++){
+    let day,isThis=true;
+    if(i<fdow){day=dip-fdow+i+1;isThis=false;}else if(i>=fdow+dim){day=i-fdow-dim+1;isThis=false;}else day=i-fdow+1;
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday=isThis&&today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===day;
+    const cell=document.createElement('div');
+    cell.className=`cal-day${!isThis?' other-month':''}${isToday?' today':''}${calNotes[ds]?.length&&isThis?' has-note':''}${selectedDate===ds?' selected':''}`;
+    cell.innerHTML=`<div class="day-num">${day}</div>${calNotes[ds]?.length&&isThis?'<div class="day-dot"></div>':''}`;
+    if(isThis)(function(d2){cell.onclick=()=>selectDay(d2);})(ds);
+    grid.appendChild(cell);
+  }
+}
+function selectDay(ds){
+  selectedDate=ds;renderCalendar();
+  const p=ds.split('-');
+  document.getElementById('note-panel').style.display='block';
+  document.getElementById('note-panel-title').textContent=parseInt(p[2])+' '+MONTHS[parseInt(p[1])-1]+' '+p[0];
+  renderNotes(ds);
+}
+function renderNotes(ds){
+  const list=document.getElementById('notes-list');const items=calNotes[ds]||[];
+  if(!items.length){list.innerHTML='<p class="empty-msg">No notes for this day</p>';return;}
+  list.innerHTML=items.map(n=>`<div class="note-item"><div class="note-av" style="background:${n.bg};color:${n.col}">${n.who}</div><div style="flex:1"><div class="note-text">${n.text||''}</div>${n.photo?`<img src="${n.photo}" style="width:100%;max-width:200px;border-radius:8px;margin-top:6px;cursor:pointer" onclick="window.open('${n.photo}')"/>`:''}</div><button class="del-btn" onclick="deleteCalNote('${n.id}')">&#215;</button></div>`).join('');
+}
+window.handlePhotoSelect=()=>{const file=document.getElementById('photo-input').files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{pendingPhoto=e.target.result;document.getElementById('photo-preview').textContent='📎 Photo ready — click Add';};reader.readAsDataURL(file);};
+window.addCalNote=async()=>{
+  const input=document.getElementById('note-input');const text=input.value.trim();
+  if(!text&&!pendingPhoto)return;
+  const p=getPerson(document.getElementById('note-who').value);input.value='';
+  const payload={date:selectedDate,who:p.init,text:text||'',bg:p.bg,col:p.col,createdAt:serverTimestamp()};
+  if(pendingPhoto){payload.photo=pendingPhoto;pendingPhoto=null;document.getElementById('photo-preview').textContent='';document.getElementById('photo-input').value='';}
+  await addDoc(collection(db,'calendarNotes'),payload);
+};
+window.deleteCalNote=async id=>{await deleteDoc(doc(db,'calendarNotes',id));};
+window.toggleMic=()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Voice notes work in Chrome');return;}
+  if(recording)return;recording=true;document.getElementById('mic-btn').classList.add('recording');
+  const r=new SR();
+  r.onresult=e=>{document.getElementById('note-input').value=e.results[0][0].transcript;recording=false;document.getElementById('mic-btn').classList.remove('recording');};
+  r.onerror=()=>{recording=false;document.getElementById('mic-btn').classList.remove('recording');};
+  r.start();
+};
+
+// ── Probate ──
+function renderProbate(){
+  renderProbateSection('val','Valuations',PROBATE_VAL,'probate-val-card');
+  renderProbateSection('form','Forms & submission',PROBATE_FORM,'probate-form-card');
+}
+function renderProbateSection(prefix,title,items,cardId){
+  const el=document.getElementById(cardId);if(!el)return;
+  const doneItems=items.filter((_,i)=>probateChecks[`${prefix}_${i}`]);
+  const activeItems=items.filter((_,i)=>!probateChecks[`${prefix}_${i}`]);
+  const pct=Math.round(doneItems.length/items.length*100);
+  el.innerHTML=`
+    <div class="section-card-title"><span>${title}</span><span class="prog-label${doneItems.length===items.length?' prog-done':''}">${doneItems.length} of ${items.length}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="items-list">
+      ${activeItems.map(item=>{
+        const i=items.indexOf(item);const key=`${prefix}_${i}`;
+        const p=item.assignee?getPerson(item.assignee):null;
+        return `<div>
+          <div class="check-item">
+            <div class="chk" onclick="toggleProbateDetail('${key}')"></div>
+            <span style="flex:1">${item.text}</span>
+            ${p?`<div class="badge-av" style="background:${p.bg};color:${p.col}">${p.init}</div>`:''}
+          </div>
+          <div class="probate-detail-panel" id="pdp-${key}">
+            <input type="text" id="pdn-${key}" placeholder="Note (e.g. spoke to Barclays, cert posted)"/>
+            <input type="date" id="pdd-${key}"/>
+            <button class="probate-detail-btn" onclick="saveProbateDetail('${prefix}',${i})">✓ Mark as done</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${doneItems.length?`
+      <div class="completed-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">&#10003; ${doneItems.length} completed &#9660;</div>
+      <div class="completed-section" style="display:none">
+        ${doneItems.map(item=>{
+          const i=items.indexOf(item);const key=`${prefix}_${i}`;const det=probateDetails[key]||{};
+          return `<div class="check-item" style="flex-direction:column;align-items:flex-start">
+            <div style="display:flex;align-items:center;gap:10px;width:100%">
+              <div class="chk done" onclick="undoProbate('${key}')"></div>
+              <span class="done-text" style="flex:1">${item.text}</span>
+            </div>
+            ${det.note||det.date?`<div class="probate-done-detail">${det.note||''}${det.note&&det.date?' — ':''}${det.date?fmtDate(det.date):''}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`:''}`;
+}
+window.toggleProbateDetail=key=>{const p=document.getElementById('pdp-'+key);if(p)p.classList.toggle('open');};
+window.saveProbateDetail=async(prefix,i)=>{
+  const key=`${prefix}_${i}`;
+  const note=document.getElementById(`pdn-${key}`)?.value||'';
+  const date=document.getElementById(`pdd-${key}`)?.value||'';
+  probateChecks[key]=true;probateDetails[key]={note,date};
+  renderProbate();
+  await setDoc(doc(db,'probate','checklist'),{[key]:true},{merge:true});
+  await setDoc(doc(db,'probate','details'),{[key]:{note,date}},{merge:true});
+};
+window.undoProbate=async key=>{
+  probateChecks[key]=false;renderProbate();
+  await setDoc(doc(db,'probate','checklist'),{[key]:false},{merge:true});
+};
+
+// ── Document checklist ──
+function renderDocChecklist(){
+  const active=DOC_CHECKLIST.filter((_,i)=>!docChecks[`doc_${i}`]);
+  const done=DOC_CHECKLIST.filter((_,i)=>docChecks[`doc_${i}`]);
+  const pct=Math.round(done.length/DOC_CHECKLIST.length*100);
+  document.getElementById('doc-checklist').innerHTML=`
+    <div class="section-card-title"><span>Documents needed</span><span class="prog-label${done.length===DOC_CHECKLIST.length?' prog-done':''}">${done.length} of ${DOC_CHECKLIST.length}</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="items-list">
+      ${active.map(item=>{const i=DOC_CHECKLIST.indexOf(item);return `<div class="doc-item"><div class="chk" onclick="toggleDoc(${i})"></div><div><div>${item.text}</div>${item.note?`<div class="doc-note">${item.note}</div>`:''}</div></div>`;}).join('')}
+    </div>
+    ${done.length?`<div class="completed-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">&#10003; ${done.length} collected &#9660;</div><div class="completed-section" style="display:none">${done.map(item=>{const i=DOC_CHECKLIST.indexOf(item);return `<div class="doc-item"><div class="chk done" onclick="toggleDoc(${i})"></div><div class="done-text">${item.text}</div></div>`;}).join('')}</div>`:''}`;
+}
+window.toggleDoc=async i=>{docChecks[`doc_${i}`]=!docChecks[`doc_${i}`];renderDocChecklist();await setDoc(doc(db,'docs','checklist'),{[`doc_${i}`]:docChecks[`doc_${i}`]},{merge:true});};
+
+// ── File links ──
+function renderFileLinks(){
+  const c=document.getElementById('files-list');if(!c)return;
+  if(!fileLinks.length){c.innerHTML='<p class="empty-msg">No documents added yet — paste a Google Drive or OneDrive link above</p>';return;}
+  const cats=[...new Set(fileLinks.map(f=>f.cat))];
+  c.innerHTML=cats.map(cat=>`
+    <div class="section-label">${cat}</div>
+    ${fileLinks.filter(f=>f.cat===cat).map(f=>`
+      <div class="doc-link-card">
+        <div class="doc-link-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+        <div class="doc-link-info">
+          <div class="doc-link-name">${f.name}</div>
+          <div class="doc-link-meta">Added by ${getPerson(f.who).name}</div>
+        </div>
+        <a href="${f.url}" target="_blank" class="doc-link-open">Open ↗</a>
+        <button class="del-btn" onclick="deleteFileLink('${f.id}')">&#215;</button>
+      </div>`).join('')}`).join('');
+}
+window.addFileLink=async()=>{
+  const name=document.getElementById('fl-name').value.trim();
+  const url=document.getElementById('fl-url').value.trim();
+  const cat=document.getElementById('fl-cat').value;
+  const who=document.getElementById('fl-who').value;
+  if(!name||!url)return;
+  document.getElementById('fl-name').value='';document.getElementById('fl-url').value='';
+  await addDoc(collection(db,'fileLinks'),{name,url,cat,who,createdAt:serverTimestamp()});
+};
+window.deleteFileLink=async id=>{if(!confirm('Remove this document?'))return;await deleteDoc(doc(db,'fileLinks',id));};
+
+// ── General expenses ──
+function renderGeneralExpenses(){
+  const c=document.getElementById('general-expenses-list');if(!c)return;
+  if(!generalExpenses.length){c.innerHTML='<p class="empty-msg">No general expenses yet</p>';return;}
+  const total=generalExpenses.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+  c.innerHTML=`<div class="expense-total"><span>Total</span><span>£${total.toFixed(2)}</span></div>`+
+    generalExpenses.map(e=>`<div class="expense-item">
+      <div class="expense-amount">£${parseFloat(e.amount||0).toFixed(2)}</div>
+      <div class="expense-info"><div class="expense-desc">${e.desc}</div><div class="expense-meta">Paid by ${getPerson(e.who).name}${e.date?' · '+fmtDate(e.date):''}</div></div>
+      <button class="del-btn" onclick="deleteGeneralExpense('${e.id}')">&#215;</button>
+    </div>`).join('');
+}
+window.addGeneralExpense=async()=>{
+  const desc=document.getElementById('gexp-desc').value.trim();
+  const amount=parseFloat(document.getElementById('gexp-amount').value);
+  const who=document.getElementById('gexp-who').value;
+  const date=document.getElementById('gexp-date').value;
+  if(!desc||isNaN(amount))return;
+  ['gexp-desc','gexp-amount','gexp-date'].forEach(id=>document.getElementById(id).value='');
+  await addDoc(collection(db,'generalExpenses'),{desc,amount,who,date,createdAt:serverTimestamp()});
+};
+window.deleteGeneralExpense=async id=>{if(!confirm('Remove?'))return;await deleteDoc(doc(db,'generalExpenses',id));};
+
+// ── Personal expenses ──
+function renderPersonalExpenses(){
+  const c=document.getElementById('personal-expenses-list');if(!c)return;c.innerHTML='';
+  PEOPLE.forEach(person=>{
+    const items=personalExpenses[person.key]||[];
+    const total=items.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+    const card=document.createElement('div');card.className='pexp-card';
+    card.innerHTML=`
+      <div class="pexp-header">
+        <div style="width:30px;height:30px;border-radius:50%;background:${person.bg};color:${person.col};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${person.init}</div>
+        <span style="font-size:13px;font-weight:600;flex:1">${person.name}</span>
+        <span style="font-size:15px;font-weight:700">£${total.toFixed(2)}</span>
+      </div>
+      <div class="pexp-form">
+        <input type="text" id="pe-desc-${person.key}" placeholder="Description"/>
+        <input type="number" id="pe-amt-${person.key}" placeholder="Amount £" step="0.01"/>
+        <input type="date" id="pe-date-${person.key}"/>
+        <button onclick="addPersonalExpense('${person.key}')">+ Add my expense</button>
+      </div>
+      <div class="pexp-body">
+        ${!items.length?'<p class="empty-msg">No personal expenses yet</p>':items.map(e=>`<div class="expense-item">
+          <div class="expense-amount" style="font-size:13px">£${parseFloat(e.amount||0).toFixed(2)}</div>
+          <div class="expense-info"><div class="expense-desc">${e.desc}</div><div class="expense-meta">${e.date?fmtDate(e.date):''}</div></div>
+          <button class="del-btn" onclick="deletePersonalExpense('${person.key}','${e.id}')">&#215;</button>
+        </div>`).join('')}
+      </div>`;
+    c.appendChild(card);
+  });
+}
+window.addPersonalExpense=async key=>{
+  const desc=document.getElementById(`pe-desc-${key}`).value.trim();
+  const amount=parseFloat(document.getElementById(`pe-amt-${key}`).value);
+  const date=document.getElementById(`pe-date-${key}`).value;
+  if(!desc||isNaN(amount))return;
+  [`pe-desc-${key}`,`pe-amt-${key}`,`pe-date-${key}`].forEach(id=>document.getElementById(id).value='');
+  personalExpenses[key]=[...(personalExpenses[key]||[]),{id:Date.now().toString(),desc,amount,date}];
+  await setDoc(doc(db,'personalExpenses','all'),{[key]:personalExpenses[key]},{merge:true});
+};
+window.deletePersonalExpense=async(key,id)=>{
+  if(!confirm('Remove?'))return;
+  personalExpenses[key]=(personalExpenses[key]||[]).filter(e=>e.id!==id);
+  await setDoc(doc(db,'personalExpenses','all'),{[key]:personalExpenses[key]},{merge:true});
+};
+
+// ── Personal lists ──
+function renderPersonLists(){
+  const container=document.getElementById('person-lists');container.innerHTML='';
+  PEOPLE.forEach(person=>{
+    const items=personalLists[person.key]||[];
+    const active=items.filter(i=>!i.done);const done=items.filter(i=>i.done);
+    const pct=items.length?Math.round(done.length/items.length*100):0;
+    const card=document.createElement('div');card.className='person-card';card.style.borderTop=`3px solid ${person.accent}`;
+    card.innerHTML=`
+      <div class="person-card-header">
+        <div class="person-header-left">
+          <div class="person-av" style="background:${person.bg};color:${person.col}">${person.init}</div>
+          <div><div class="person-name">${person.name}</div><div class="person-count">${done.length} of ${items.length} done</div></div>
+        </div>
+        <button class="quick-add-btn" style="border-color:${person.accent};color:${person.col}" onclick="toggleQuickAdd('${person.key}')">+ Quick add</button>
+      </div>
+      <div class="progress-bar" style="border-radius:0;margin:0"><div class="progress-fill" style="width:${pct}%;background:${person.accent}"></div></div>
+      <div id="qa-${person.key}" class="quick-add-panel">
+        <select id="qf-${person.key}" style="font-size:11px">${PEOPLE.map(p=>`<option value="${p.key}">From ${p.name}</option>`).join('')}</select>
+        <input type="text" id="qi-${person.key}" placeholder="Add to ${person.name}..." onkeydown="if(event.key==='Enter')submitQuickAdd('${person.key}')"/>
+        <button class="btn-save" onclick="submitQuickAdd('${person.key}')">Add</button>
+        <button class="btn-cancel" onclick="toggleQuickAdd('${person.key}')">✕</button>
+      </div>
+      <div class="person-card-body">
+        ${!items.length?'<p class="empty-msg">No items yet</p>':''}
+        ${active.map(item=>{const fp=item.from?getPerson(item.from):null;return `<div class="person-item"><div class="chk" onclick="togglePersonal('${person.key}','${item.id}')"></div><span style="flex:1">${item.text}${fp?`<span class="from-badge" style="background:${fp.bg};color:${fp.col}">from ${fp.name}</span>`:''}</span><button class="del-btn" onclick="deletePersonal('${person.key}','${item.id}')">&#215;</button></div>`;}).join('')}
+        ${done.length?`<div class="completed-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">&#10003; ${done.length} done &#9660;</div><div class="completed-section" style="display:none">${done.map(item=>`<div class="person-item"><div class="chk done" onclick="togglePersonal('${person.key}','${item.id}')"></div><span class="done-text" style="flex:1">${item.text}</span><button class="del-btn" onclick="deletePersonal('${person.key}','${item.id}')">&#215;</button></div>`).join('')}</div>`:''}
+      </div>
+      <div class="person-add-row">
+        <input type="text" id="pi-${person.key}" placeholder="Add own item..." onkeydown="if(event.key==='Enter')addPersonalOwn('${person.key}')"/>
+        <button onclick="addPersonalOwn('${person.key}')">Add</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+window.toggleQuickAdd=key=>{
+  document.querySelectorAll('.quick-add-panel').forEach(p=>{if(p.id!==`qa-${key}`)p.classList.remove('open');});
+  const panel=document.getElementById(`qa-${key}`);panel.classList.toggle('open');
+  if(panel.classList.contains('open'))setTimeout(()=>document.getElementById(`qi-${key}`)?.focus(),50);
+};
+async function savePersonalLists(){const data={};PEOPLE.forEach(p=>{data[p.key]=personalLists[p.key]||[];});await setDoc(doc(db,'personalLists','all'),data);}
+window.submitQuickAdd=async key=>{const input=document.getElementById(`qi-${key}`);const text=input.value.trim();if(!text)return;const fromKey=document.getElementById(`qf-${key}`).value;personalLists[key]=[...(personalLists[key]||[]),{text,done:false,from:fromKey,id:Date.now().toString()}];input.value='';document.getElementById(`qa-${key}`).classList.remove('open');await savePersonalLists();};
+window.addPersonalOwn=async key=>{const input=document.getElementById(`pi-${key}`);const text=input.value.trim();if(!text)return;personalLists[key]=[...(personalLists[key]||[]),{text,done:false,from:null,id:Date.now().toString()}];input.value='';await savePersonalLists();};
+window.togglePersonal=async(key,id)=>{personalLists[key]=personalLists[key].map(i=>i.id===id?{...i,done:!i.done}:i);await savePersonalLists();};
+window.deletePersonal=async(key,id)=>{personalLists[key]=personalLists[key].filter(i=>i.id!==id);await savePersonalLists();};
+
+// ── Shared lists ──
+function renderSharedLists(){
+  const container=document.getElementById('shared-lists');container.innerHTML='';
+  sharedLists.forEach(list=>{
+    const active=list.items.filter(i=>!i.done);const done=list.items.filter(i=>i.done);
+    const pct=list.items.length?Math.round(done.length/list.items.length*100):0;
+    const card=document.createElement('div');card.className='section-card';
+    card.innerHTML=`<div class="section-card-title"><span>${list.name}</span><div style="display:flex;align-items:center;gap:8px"><span class="prog-label">${done.length} of ${list.items.length}</span><button class="del-btn" onclick="deleteSharedList('${list.id}')">&#215;</button></div></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="items-list" style="margin-top:8px">
+        ${!list.items.length?'<p class="empty-msg">No items yet</p>':''}
+        ${active.map(item=>`<div class="check-item"><div class="chk" onclick="toggleSharedItem('${list.id}','${item.id}')"></div><span style="flex:1">${item.text}</span></div>`).join('')}
+        ${done.length?`<div class="completed-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">&#10003; ${done.length} done &#9660;</div><div class="completed-section" style="display:none">${done.map(item=>`<div class="check-item"><div class="chk done" onclick="toggleSharedItem('${list.id}','${item.id}')"></div><span class="done-text">${item.text}</span></div>`).join('')}</div>`:''}
+      </div>
+      <div class="add-row"><input type="text" id="sli-${list.id}" placeholder="Add item..." onkeydown="if(event.key==='Enter')addSharedItem('${list.id}')"/><button onclick="addSharedItem('${list.id}')">Add</button></div>`;
+    container.appendChild(card);
+  });
+}
+window.createSharedList=async()=>{const input=document.getElementById('new-list-input');const name=input.value.trim();if(!name)return;input.value='';await addDoc(collection(db,'sharedLists'),{name,items:[],createdAt:serverTimestamp()});};
+window.addSharedItem=async id=>{const input=document.getElementById(`sli-${id}`);const text=input.value.trim();if(!text)return;const list=sharedLists.find(l=>l.id===id);input.value='';await updateDoc(doc(db,'sharedLists',id),{items:[...(list.items||[]),{text,done:false,id:Date.now().toString()}]});};
+window.toggleSharedItem=async(listId,itemId)=>{const list=sharedLists.find(l=>l.id===listId);await updateDoc(doc(db,'sharedLists',listId),{items:list.items.map(i=>i.id===itemId?{...i,done:!i.done}:i)});};
+window.deleteSharedList=async id=>{if(!confirm('Delete this list?'))return;await deleteDoc(doc(db,'sharedLists',id));};
+
+// ── Contacts ──
+function renderContacts(){
+  const container=document.getElementById('contacts-list');container.innerHTML='';
+  if(!contacts.length){container.innerHTML='<p class="empty-msg">No contacts yet — add useful numbers above</p>';return;}
+  contacts.forEach(c=>{
+    const initials=c.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const card=document.createElement('div');card.className='contact-card';
+    card.innerHTML=`<div class="contact-av">${initials}</div><div class="contact-info"><div class="contact-name">${c.name}</div><div class="contact-role">${c.role||''}</div>${c.note?`<div class="doc-note">${c.note}</div>`:''}<a href="tel:${c.number}" class="contact-number">${c.number}</a></div><button class="del-btn" onclick="deleteContact('${c.id}')">&#215;</button>`;
+    container.appendChild(card);
+  });
+}
+window.addContact=async()=>{
+  const name=document.getElementById('ct-name').value.trim();const number=document.getElementById('ct-number').value.trim();
+  if(!name||!number)return;
+  const role=document.getElementById('ct-role').value.trim();const note=document.getElementById('ct-note').value.trim();
+  ['ct-name','ct-role','ct-number','ct-note'].forEach(id=>document.getElementById(id).value='');
+  await addDoc(collection(db,'contacts'),{name,role,number,note,createdAt:serverTimestamp()});
+};
+window.deleteContact=async id=>{if(!confirm('Remove this contact?'))return;await deleteDoc(doc(db,'contacts',id));};
+
+// ── Notes ──
+function buildNotesSections(){
+  const container=document.getElementById('notes-sections');
+  container.innerHTML=PEOPLE.map(p=>`
+    <div class="notes-area">
+      <div class="notes-area-title">
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:24px;height:24px;border-radius:50%;background:${p.bg};color:${p.col};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${p.init}</div><span>${p.name}'s notes</span></div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="notes-mic-btn" id="nmic-${p.key}" onclick="micNote('${p.key}')" title="Voice note"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+          <button class="notes-save-btn" onclick="saveNote('${p.key}')">Save</button>
+        </div>
+      </div>
+      <textarea id="note-${p.key}" placeholder="Jot anything down here..."></textarea>
+    </div>`).join('');
+}
+window.saveNote=async person=>{const text=document.getElementById('note-'+person).value;freeNotes[person]=text;await setDoc(doc(db,'freeNotes','all'),{[person]:text},{merge:true});};
+window.micNote=person=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Voice notes work in Chrome');return;}
+  const btn=document.getElementById('nmic-'+person);btn.classList.add('recording');
+  const r=new SR();r.continuous=false;
+  r.onresult=e=>{const ta=document.getElementById('note-'+person);const t=e.results[0][0].transcript;ta.value=ta.value?(ta.value+'\n'+t):t;btn.classList.remove('recording');window.saveNote(person);};
+  r.onerror=()=>btn.classList.remove('recording');r.start();
+};
+
+// ── Init ──
+buildNotesSections();
+renderCalendar();
+renderProbate();
+renderDocChecklist();
+renderPersonLists();
+renderSharedLists();
+renderContacts();
+renderFileLinks();
+renderGeneralExpenses();
+renderPersonalExpenses();
+</script>
+
+<script>
+/* Cherry blossom */
+(function(){
+  const canvas=document.getElementById('blossom-canvas');if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const isDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches;
+  let W,H,petals=[],branches=[];
+  const PC=isDark?['rgba(255,182,193,0.65)','rgba(255,140,170,0.55)','rgba(220,120,150,0.5)','rgba(255,200,215,0.6)']:['rgba(255,183,197,0.88)','rgba(255,150,172,0.82)','rgba(245,120,148,0.75)','rgba(255,215,225,0.9)','rgba(255,248,250,0.85)'];
+  const TC=isDark?'rgba(90,45,55,0.55)':'rgba(130,75,55,0.5)';
+  const BC=isDark?'rgba(110,60,70,0.45)':'rgba(160,95,65,0.42)';
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;buildTrees();}
+  function buildTrees(){branches=[];(W<600?[0.06,0.94]:[0.06,0.94,0.5]).forEach(pct=>{const x=W*pct,h=H*(0.48+Math.random()*0.1);branches.push({x1:x,y1:H,x2:x,y2:H-h,w:11,c:TC});addBranch(x,H-h,x,H,-h*0.4,5);addBranch(x,H-h,x,H,-h*0.56,5);addBranch(x,H-h*0.7,x,H,-h*0.32,4);});}
+  function addBranch(px,py,ox,oy,scale,depth){if(depth<=0||Math.abs(scale)<16)return;const ba=Math.atan2(py-oy,px-ox);[-0.45,0.45].forEach(off=>{const a=ba+off+(Math.random()-0.5)*0.15,len=Math.abs(scale)*0.72,x2=px+Math.cos(a)*len,y2=py+Math.sin(a)*len;branches.push({x1:px,y1:py,x2,y2,w:Math.max(1,depth*1.1),c:BC});addBranch(x2,y2,px,py,scale*0.62,depth-1);});}
+  function drawBranches(){branches.forEach(b=>{ctx.beginPath();ctx.moveTo(b.x1,b.y1);ctx.lineTo(b.x2,b.y2);ctx.strokeStyle=b.c;ctx.lineWidth=b.w;ctx.lineCap='round';ctx.stroke();});}
+  function spawnPetal(){const xs=W<600?[0.06,0.94]:[0.06,0.94,0.5];const tx=xs[Math.floor(Math.random()*xs.length)];petals.push({x:W*tx+(Math.random()-0.5)*W*0.2,y:H*0.05+Math.random()*H*0.3,vx:(Math.random()-0.5)*1.1,vy:0.5+Math.random()*0.9,rot:Math.random()*Math.PI*2,rotV:(Math.random()-0.5)*0.035,size:3.5+Math.random()*5,color:PC[Math.floor(Math.random()*PC.length)],sway:Math.random()*Math.PI*2,swayS:0.012+Math.random()*0.018,swayA:0.35+Math.random()*0.65});}
+  function drawPetal(p){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.beginPath();ctx.ellipse(0,0,p.size,p.size*0.55,0,0,Math.PI*2);ctx.fill();ctx.restore();}
+  let frame=0;
+  function animate(){requestAnimationFrame(animate);ctx.clearRect(0,0,W,H);drawBranches();if(frame%10===0&&petals.length<100)spawnPetal();petals=petals.filter(p=>p.y<H+20);petals.forEach(p=>{p.sway+=p.swayS;p.x+=p.vx+Math.sin(p.sway)*p.swayA;p.y+=p.vy;p.rot+=p.rotV;drawPetal(p);});frame++;}
+  window.addEventListener('resize',resize);resize();animate();
+})();
+</script>
+</body>
+</html>
