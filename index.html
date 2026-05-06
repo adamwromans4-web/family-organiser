@@ -223,7 +223,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="nav-btn" onclick="showTab('files',this)">Files</button>
   <button class="nav-btn" onclick="showTab('expenses',this)">Expenses</button>
   <button class="nav-btn" onclick="showTab('contacts',this)">Contacts</button>
-  <button class="nav-btn" onclick="showTab('notes',this)">Notes</button>
+  <button class="nav-btn" onclick="showTab('car',this)">Mum's Car</button>
 </nav>
 
 <!-- CALENDAR -->
@@ -249,6 +249,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <!-- PROBATE -->
+<!-- PROBATE -->
 <div id="tab-probate" class="tab">
   <div class="section-card">
     <div class="section-card-title"><span>Already sorted</span><span class="prog-label prog-done">3 of 3</span></div>
@@ -259,8 +260,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="check-item"><div class="chk done"></div><span class="done-text">Misc items under £500 — self-estimated</span></div>
     </div>
   </div>
+  <!-- Banks -->
+  <div class="section-card">
+    <div class="section-card-title"><span>Banks &amp; Building Societies</span><span class="prog-label" id="banks-prog"></span></div>
+    <div class="progress-bar"><div class="progress-fill" id="banks-bar" style="width:0%"></div></div>
+    <div class="items-list" id="banks-list"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <input type="text" id="bank-name" placeholder="Bank name (e.g. Barclays)" style="flex:1;min-width:140px;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none"/>
+      <input type="text" id="bank-type" placeholder="Account type (e.g. Current)" style="flex:1;min-width:120px;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none"/>
+      <button class="btn-primary" onclick="addBank()">+ Add bank</button>
+    </div>
+  </div>
+
+  <!-- Pensions -->
+  <div class="section-card">
+    <div class="section-card-title"><span>Pensions</span><span class="prog-label" id="pensions-prog"></span></div>
+    <div class="progress-bar"><div class="progress-fill" id="pensions-bar" style="width:0%"></div></div>
+    <div class="items-list" id="pensions-list"></div>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <input type="text" id="pension-name" placeholder="Pension provider name" style="flex:1;min-width:160px;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none"/>
+      <button class="btn-primary" onclick="addPension()">+ Add pension</button>
+    </div>
+  </div>
+
+  <!-- Other valuations -->
   <div class="section-card" id="probate-val-card"></div>
+
+  <!-- Forms -->
   <div class="section-card" id="probate-form-card"></div>
+
   <div class="info-box">Apply online at gov.uk — 2–5 weeks. Check forms free at <a href="https://withfarra.co.uk" target="_blank">withfarra.co.uk</a> or Citizens Advice.</div>
 </div>
 
@@ -336,9 +364,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div id="contacts-list"></div>
 </div>
 
-<!-- NOTES -->
-<div id="tab-notes" class="tab">
-  <div id="notes-sections"></div>
+<!-- CAR -->
+<div id="tab-car" class="tab">
+  <div class="section-card">
+    <div class="section-card-title"><span>&#128663; Mum's Car Details</span></div>
+    <div class="items-list" style="margin-top:0">
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Registration</span><span style="font-weight:600">YF72 RJO</span></div>
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Mileage</span><span style="font-weight:600">17,507</span></div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-title"><span>Documents needed to sell</span></div>
+    <div class="items-list" id="car-docs-list"></div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-title"><span>AutoTrader valuations</span></div>
+    <div class="items-list" style="margin-top:0">
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Private sale</span><span style="font-weight:600">&#163;14,650 &#8211; &#163;14,850</span></div>
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Dealer</span><span style="font-weight:600">&#163;12,862 &#8211; &#163;13,335</span></div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-title"><span>Online dealer offers</span><span class="prog-label" id="best-offer-label"></span></div>
+    <div class="items-list" id="car-offers-list"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <input type="text" id="offer-dealer" placeholder="Dealer name" style="flex:1;min-width:120px;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none"/>
+      <input type="number" id="offer-amount" placeholder="Amount" step="1" style="width:110px;font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none"/>
+      <button class="btn-primary" onclick="addCarOffer()">+ Add offer</button>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-card-title"><span>Notes</span><button class="notes-save-btn" onclick="saveCarNote()">Save</button></div>
+    <textarea id="car-note" placeholder="Any notes about the sale..." style="width:100%;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none;resize:vertical;min-height:100px;font-family:inherit;line-height:1.6"></textarea>
+  </div>
 </div>
 
 </div><!-- end .app -->
@@ -385,8 +443,6 @@ const getPerson=k=>PEOPLE.find(p=>p.key===k)||PEOPLE[0];
 
 // ── Probate items ──
 const PROBATE_VAL=[
-  {text:'Contact all banks for date of death balance',assignee:'adam'},
-  {text:'Contact pension providers for date of death balance',assignee:'laura'},
   {text:'Get car value from AutoTrader',assignee:'emma'},
   {text:'Jewellery — probate valuation (not insurance)',assignee:'daniel'},
 ];
@@ -818,8 +874,164 @@ window.micNote=person=>{
   r.onerror=()=>btn.classList.remove('recording');r.start();
 };
 
+// ── Banks ──
+let banks=[];
+onSnapshot(doc(db,'probate','banks'),snap=>{banks=snap.exists()?(snap.data().list||[]):[];renderBanks();setSynced(true);},()=>setSynced(false));
+
+function renderBanks(){
+  const c=document.getElementById('banks-list');if(!c)return;
+  const done=banks.filter(b=>b.contacted).length;
+  const pct=banks.length?Math.round(done/banks.length*100):0;
+  const pg=document.getElementById('banks-prog');const bar=document.getElementById('banks-bar');
+  if(pg)pg.textContent=banks.length?done+' of '+banks.length+' contacted':'';
+  if(bar)bar.style.width=pct+'%';
+  if(!banks.length){c.innerHTML='<p class="empty-msg">No banks added yet — add them below</p>';return;}
+  c.innerHTML=banks.map((b,i)=>`
+    <div>
+      <div class="check-item">
+        <div class="chk${b.contacted?' done':''}" onclick="toggleBankDetail(${i})"></div>
+        <span style="flex:1"><strong>${b.name}</strong>${b.type?' · '+b.type:''}</span>
+        <button class="del-btn" onclick="deleteBank(${i})">&#215;</button>
+      </div>
+      <div class="probate-detail-panel${b.open?' open':''}" id="bdp-${i}">
+        <input type="text" id="bdn-${i}" value="${b.note||''}" placeholder="Note (e.g. balance confirmed, cert posted)"/>
+        <input type="date" id="bdd-${i}" value="${b.date||''}"/>
+        <button class="probate-detail-btn" onclick="saveBankDetail(${i})">&#10003; Mark as contacted</button>
+      </div>
+      ${b.contacted&&(b.note||b.date)?`<div class="probate-done-detail">${b.note||''}${b.note&&b.date?' — ':''}${b.date?fmtDate(b.date):''}</div>`:''}
+    </div>`).join('');
+}
+window.toggleBankDetail=i=>{banks[i].open=!banks[i].open;renderBanks();};
+window.addBank=async()=>{
+  const name=document.getElementById('bank-name').value.trim();if(!name)return;
+  const type=document.getElementById('bank-type').value.trim();
+  banks.push({name,type,contacted:false,note:'',date:'',open:false});
+  document.getElementById('bank-name').value='';document.getElementById('bank-type').value='';
+  await setDoc(doc(db,'probate','banks'),{list:banks});
+};
+window.saveBankDetail=async i=>{
+  banks[i].note=document.getElementById(`bdn-${i}`).value||'';
+  banks[i].date=document.getElementById(`bdd-${i}`).value||'';
+  banks[i].contacted=true;banks[i].open=false;
+  await setDoc(doc(db,'probate','banks'),{list:banks});
+};
+window.deleteBank=async i=>{if(!confirm('Remove this bank?'))return;banks.splice(i,1);await setDoc(doc(db,'probate','banks'),{list:banks});};
+
+// ── Pensions ──
+let pensions=[];
+onSnapshot(doc(db,'probate','pensions'),snap=>{pensions=snap.exists()?(snap.data().list||[]):[];renderPensions();setSynced(true);},()=>setSynced(false));
+
+function renderPensions(){
+  const c=document.getElementById('pensions-list');if(!c)return;
+  const done=pensions.filter(p=>p.contacted).length;
+  const pct=pensions.length?Math.round(done/pensions.length*100):0;
+  const pg=document.getElementById('pensions-prog');const bar=document.getElementById('pensions-bar');
+  if(pg)pg.textContent=pensions.length?done+' of '+pensions.length+' contacted':'';
+  if(bar)bar.style.width=pct+'%';
+  if(!pensions.length){c.innerHTML='<p class="empty-msg">No pensions added yet — add them below</p>';return;}
+  c.innerHTML=pensions.map((p,i)=>`
+    <div>
+      <div class="check-item">
+        <div class="chk${p.contacted?' done':''}" onclick="togglePensionDetail(${i})"></div>
+        <span style="flex:1"><strong>${p.name}</strong></span>
+        <button class="del-btn" onclick="deletePension(${i})">&#215;</button>
+      </div>
+      <div class="probate-detail-panel${p.open?' open':''}" id="pdpen-${i}">
+        <input type="text" id="pnpen-${i}" value="${p.note||''}" placeholder="Note (e.g. no lump sum payable, cert sent)"/>
+        <input type="date" id="pdpen-d-${i}" value="${p.date||''}"/>
+        <button class="probate-detail-btn" onclick="savePensionDetail(${i})">&#10003; Mark as contacted</button>
+      </div>
+      ${p.contacted&&(p.note||p.date)?`<div class="probate-done-detail">${p.note||''}${p.note&&p.date?' — ':''}${p.date?fmtDate(p.date):''}</div>`:''}
+    </div>`).join('');
+}
+window.togglePensionDetail=i=>{pensions[i].open=!pensions[i].open;renderPensions();};
+window.addPension=async()=>{
+  const name=document.getElementById('pension-name').value.trim();if(!name)return;
+  pensions.push({name,contacted:false,note:'',date:'',open:false});
+  document.getElementById('pension-name').value='';
+  await setDoc(doc(db,'probate','pensions'),{list:pensions});
+};
+window.savePensionDetail=async i=>{
+  pensions[i].note=document.getElementById(`pnpen-${i}`).value||'';
+  pensions[i].date=document.getElementById(`pdpen-d-${i}`).value||'';
+  pensions[i].contacted=true;pensions[i].open=false;
+  await setDoc(doc(db,'probate','pensions'),{list:pensions});
+};
+window.deletePension=async i=>{if(!confirm('Remove this pension?'))return;pensions.splice(i,1);await setDoc(doc(db,'probate','pensions'),{list:pensions});};
+
+// ── Car tab ──
+const CAR_DOCS=[
+  {text:'V5C logbook',note:'Must be present to transfer ownership'},
+  {text:'Death certificate',note:'Original or certified copy needed'},
+  {text:'Copy of the will',note:'Shows authority to sell estate assets'},
+];
+let carDocChecks={},carOffers=[],carNote='';
+
+onSnapshot(doc(db,'car','data'),snap=>{
+  const data=snap.exists()?snap.data():{};
+  carDocChecks=data.docs||{};carOffers=data.offers||[];carNote=data.note||'';
+  renderCarDocs();renderCarOffers();
+  const el=document.getElementById('car-note');if(el&&carNote)el.value=carNote;
+},()=>{});
+
+function renderCarDocs(){
+  const c=document.getElementById('car-docs-list');if(!c)return;
+  const done=CAR_DOCS.filter((_,i)=>carDocChecks[i]).length;
+  c.innerHTML=CAR_DOCS.map((d,i)=>`
+    <div class="doc-item">
+      <div class="chk${carDocChecks[i]?' done':''}" onclick="toggleCarDoc(${i})"></div>
+      <div><div>${d.text}</div><div class="doc-note">${d.note}</div></div>
+    </div>`).join('');
+  if(done===CAR_DOCS.length){
+    if(!document.getElementById('car-ready-banner')){
+      c.insertAdjacentHTML('afterend','<div id="car-ready-banner" class="info-box" style="margin-top:10px;background:#E1F5EE;color:#085041">&#10003; All documents ready — you can now sell the car!</div>');
+    }
+  } else {
+    const b=document.getElementById('car-ready-banner');if(b)b.remove();
+  }
+}
+window.toggleCarDoc=async i=>{carDocChecks[i]=!carDocChecks[i];renderCarDocs();await setDoc(doc(db,'car','data'),{docs:carDocChecks,offers:carOffers,note:carNote});};
+
+const PRESET_OFFERS=[
+  {dealer:'We Buy Any Car',amount:11280},
+  {dealer:'Carwow (best dealer bid)',amount:13354},
+];
+
+function renderCarOffers(){
+  const c=document.getElementById('car-offers-list');if(!c)return;
+  const all=[...PRESET_OFFERS,...carOffers];
+  if(!all.length){c.innerHTML='<p class="empty-msg">No offers yet</p>';return;}
+  const best=Math.max(...all.map(o=>o.amount));
+  const lbl=document.getElementById('best-offer-label');
+  if(lbl)lbl.textContent='Best: £'+best.toLocaleString();
+  c.innerHTML=all.map((o,i)=>`
+    <div class="expense-item">
+      <div class="expense-amount" style="font-size:13px;color:${o.amount===best?'var(--green)':'var(--text)'}">&#163;${parseFloat(o.amount).toLocaleString()}</div>
+      <div class="expense-info"><div class="expense-desc">${o.dealer}</div>${o.amount===best?'<div class="doc-note" style="color:var(--green)">&#9650; Best offer</div>':''}</div>
+      ${i>=PRESET_OFFERS.length?`<button class="del-btn" onclick="deleteCarOffer(${i-PRESET_OFFERS.length})">&#215;</button>`:''}
+    </div>`).join('');
+}
+window.addCarOffer=async()=>{
+  const dealer=document.getElementById('offer-dealer').value.trim();
+  const amount=parseFloat(document.getElementById('offer-amount').value);
+  if(!dealer||isNaN(amount))return;
+  carOffers.push({dealer,amount});
+  document.getElementById('offer-dealer').value='';document.getElementById('offer-amount').value='';
+  await setDoc(doc(db,'car','data'),{docs:carDocChecks,offers:carOffers,note:carNote});
+};
+window.deleteCarOffer=async i=>{if(!confirm('Remove this offer?'))return;carOffers.splice(i,1);await setDoc(doc(db,'car','data'),{docs:carDocChecks,offers:carOffers,note:carNote});};
+window.saveCarNote=async()=>{carNote=document.getElementById('car-note').value;await setDoc(doc(db,'car','data'),{docs:carDocChecks,offers:carOffers,note:carNote});};
+
 // ── Init ──
-buildNotesSections();
+renderCalendar();
+renderProbate();
+renderDocChecklist();
+renderPersonLists();
+renderSharedLists();
+renderContacts();
+renderFileLinks();
+renderGeneralExpenses();
+renderPersonalExpenses();
 renderCalendar();
 renderProbate();
 renderDocChecklist();
