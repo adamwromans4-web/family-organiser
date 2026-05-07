@@ -26,9 +26,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sync-dot.synced{background:var(--green)}.sync-dot.error{background:var(--red)}
 .avatars{display:flex;gap:2px}
 .av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;border:2px solid var(--bg)}
-.nav{display:flex;background:var(--nav);border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:9;overflow-x:auto}
-.nav-btn{flex:1;min-width:56px;padding:11px 4px;font-size:11px;font-weight:500;color:var(--text3);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
-.nav-btn:hover{color:var(--text)}.nav-btn.active{color:var(--text);border-bottom-color:var(--text)}
+.nav{background:var(--nav);border-bottom:1px solid var(--border);position:sticky;top:57px;z-index:9}
+.nav-current{padding:12px 16px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none}
+.nav-current:hover{background:var(--bg3)}
+.nav-dropdown{display:none;border-top:1px solid var(--border);background:var(--nav)}
+.nav-dropdown.open{display:block}
+.nav-item{display:block;width:100%;padding:13px 16px;font-size:14px;font-weight:500;color:var(--text2);background:none;border:none;border-bottom:1px solid var(--border);cursor:pointer;text-align:left}
+.nav-item:last-child{border-bottom:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{color:var(--text);background:var(--bg3);font-weight:600}
 .tab{display:none;padding:16px}.tab.active{display:block}
 .section-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
 /* lock */
@@ -216,14 +222,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </header>
 
 <nav class="nav">
-  <button class="nav-btn active" onclick="showTab('calendar',this)">Calendar</button>
-  <button class="nav-btn" onclick="showTab('probate',this)">Probate</button>
-  <button class="nav-btn" onclick="showTab('lists',this)">Lists</button>
-  <button class="nav-btn" onclick="showTab('docs',this)">Documents</button>
-  <button class="nav-btn" onclick="showTab('files',this)">Files</button>
-  <button class="nav-btn" onclick="showTab('expenses',this)">Expenses</button>
-  <button class="nav-btn" onclick="showTab('contacts',this)">Contacts</button>
-  <button class="nav-btn" onclick="showTab('car',this)">Mum's Car</button>
+  <div class="nav-current" id="nav-current">&#9776; Calendar</div>
+  <div class="nav-dropdown" id="nav-dropdown">
+    <button class="nav-item active" onclick="showTab('calendar',this)">&#128197; Calendar</button>
+    <button class="nav-item" onclick="showTab('probate',this)">&#9989; Probate</button>
+    <button class="nav-item" onclick="showTab('lists',this)">&#128221; Lists</button>
+    <button class="nav-item" onclick="showTab('docs',this)">&#128196; Documents</button>
+    <button class="nav-item" onclick="showTab('files',this)">&#128193; Files</button>
+    <button class="nav-item" onclick="showTab('expenses',this)">&#128176; Expenses</button>
+    <button class="nav-item" onclick="showTab('contacts',this)">&#128222; Contacts</button>
+    <button class="nav-item" onclick="showTab('car',this)">&#128663; Mum's Car</button>
+    <button class="nav-item" onclick="showTab('flat',this)">&#127968; Mum's Flat</button>
+  </div>
 </nav>
 
 <!-- CALENDAR -->
@@ -399,6 +409,35 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- FLAT -->
+<div id="tab-flat" class="tab">
+  <div class="section-card">
+    <div class="section-card-title"><span>&#127968; Mum's Flat — Key Info</span></div>
+    <div class="items-list" style="margin-top:0">
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Lease remaining</span><span style="font-weight:600">56 years (2024)</span></div>
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Extension premium (quoted)</span><span style="font-weight:600">~£20,000</span></div>
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Informal route total cost</span><span style="font-weight:600">£22,000 – £24,000</span></div>
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Formal statutory route total</span><span style="font-weight:600">£25,000 – £28,000</span></div>
+      <div class="check-item" style="justify-content:space-between"><span style="color:var(--text3);font-size:12px">Review date agreed</span><span style="font-weight:600">End of year 2025</span></div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-card-title"><span>Lease extension checklist</span><span class="prog-label" id="flat-prog"></span></div>
+    <div class="progress-bar"><div class="progress-fill" id="flat-bar" style="width:0%"></div></div>
+    <div class="items-list" id="flat-checklist"></div>
+  </div>
+
+  <div class="info-box" style="margin-bottom:12px">
+    <strong>Key decision:</strong> Lease is currently 56 years — will be 54 by 2028. Labour leasehold reform (marriage value abolition) not expected until 2028 at earliest per Housing Minister Matthew Pennycook. Waiting risks higher costs. Estate has funds to cover extension now.
+  </div>
+
+  <div class="section-card">
+    <div class="section-card-title"><span>Notes</span><button class="notes-save-btn" onclick="saveFlatNote()">Save</button></div>
+    <textarea id="flat-note" placeholder="Any notes about the flat or lease extension..." style="width:100%;font-size:14px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--input);color:var(--text);outline:none;resize:vertical;min-height:120px;font-family:inherit;line-height:1.6"></textarea>
+  </div>
+</div>
+
 </div><!-- end .app -->
 
 <script type="module">
@@ -534,9 +573,20 @@ window.addEventListener('beforeinstallprompt',e=>{
 // ── Tabs ──
 window.showTab=(tab,btn)=>{
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');btn.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  btn.classList.add('active');
+  const label=btn.textContent.trim();
+  document.getElementById('nav-current').textContent='☰ '+label;
+  document.getElementById('nav-dropdown').classList.remove('open');
 };
+document.getElementById('nav-current').onclick=()=>{
+  document.getElementById('nav-dropdown').classList.toggle('open');
+};
+document.addEventListener('click',e=>{
+  const nav=document.querySelector('.nav');
+  if(nav&&!nav.contains(e.target))document.getElementById('nav-dropdown').classList.remove('open');
+});
 
 // ── Calendar ──
 window.changeMonth=dir=>{currentDate.setMonth(currentDate.getMonth()+dir);selectedDate=null;document.getElementById('note-panel').style.display='none';renderCalendar();};
@@ -1021,6 +1071,56 @@ window.addCarOffer=async()=>{
 };
 window.deleteCarOffer=async i=>{if(!confirm('Remove this offer?'))return;carOffers.splice(i,1);await setDoc(doc(db,'car','data'),{docs:carDocChecks,offers:carOffers,note:carNote});};
 window.saveCarNote=async()=>{carNote=document.getElementById('car-note').value;await setDoc(doc(db,'car','data'),{docs:carDocChecks,offers:carOffers,note:carNote});};
+
+// ── Flat ──
+const FLAT_ITEMS=[
+  {text:'Find out who the freeholder is',note:'Check HM Land Registry, original lease docs, or service charge demands'},
+  {text:'Get an independent surveyor to value the extension premium',note:'Quoted ~£20,000. Informal total: £22k-£24k. Formal total: £25k-£28k'},
+  {text:'Instruct a specialist leasehold solicitor',note:'Must be experienced in leasehold extensions'},
+  {text:'Decide: informal route or formal statutory route',note:'Informal: 6-12 weeks to 4 months. Formal: up to 12 months'},
+  {text:'If informal — confirm 990 year extension in new lease',note:'Check for zero ground rent and no onerous new clauses'},
+  {text:'If informal — do not pay anything until contracts are exchanged',note:'This is critical — no upfront payments'},
+  {text:'Monitor Labour leasehold reform progress',note:'Marriage value abolition not expected until 2028 at earliest (Matthew Pennycook). Lease is 56 yrs now, 54 by 2028 — waiting risks higher costs'},
+  {text:'Confirm estate funds are available to cover the extension',note:'Estate has funds — not reliant on saving up or waiting for reforms'},
+  {text:'Set firm review date — end of year to decide: pay now or wait',note:'Agreed decision point: end of 2025'},
+];
+let flatChecks={},flatNote='';
+onSnapshot(doc(db,'flat','data'),snap=>{
+  const data=snap.exists()?snap.data():{};
+  flatChecks=data.checks||{};flatNote=data.note||'';
+  renderFlatChecklist();
+  const el=document.getElementById('flat-note');if(el&&flatNote)el.value=flatNote;
+},()=>{});
+
+function renderFlatChecklist(){
+  const c=document.getElementById('flat-checklist');if(!c)return;
+  const done=FLAT_ITEMS.filter((_,i)=>flatChecks[i]).length;
+  const pct=Math.round(done/FLAT_ITEMS.length*100);
+  const pg=document.getElementById('flat-prog');const bar=document.getElementById('flat-bar');
+  if(pg)pg.textContent=done+' of '+FLAT_ITEMS.length;
+  if(bar)bar.style.width=pct+'%';
+  const active=FLAT_ITEMS.filter((_,i)=>!flatChecks[i]);
+  const done_items=FLAT_ITEMS.filter((_,i)=>flatChecks[i]);
+  c.innerHTML=
+    active.map(item=>{
+      const i=FLAT_ITEMS.indexOf(item);
+      return `<div>
+        <div class="check-item">
+          <div class="chk" onclick="toggleFlatItem(${i})"></div>
+          <div style="flex:1"><div>${item.text}</div><div class="doc-note">${item.note}</div></div>
+        </div>
+      </div>`;
+    }).join('')+
+    (done_items.length?`<div class="completed-toggle" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">&#10003; ${done_items.length} completed &#9660;</div><div class="completed-section" style="display:none">${done_items.map(item=>{const i=FLAT_ITEMS.indexOf(item);return `<div class="check-item"><div class="chk done" onclick="toggleFlatItem(${i})"></div><div style="flex:1"><div class="done-text">${item.text}</div></div></div>`;}).join('')}</div>`:'');
+}
+window.toggleFlatItem=async i=>{
+  flatChecks[i]=!flatChecks[i];renderFlatChecklist();
+  await setDoc(doc(db,'flat','data'),{checks:flatChecks,offers:[],note:flatNote});
+};
+window.saveFlatNote=async()=>{
+  flatNote=document.getElementById('flat-note').value;
+  await setDoc(doc(db,'flat','data'),{checks:flatChecks,offers:[],note:flatNote});
+};
 
 // ── Init ──
 renderCalendar();
